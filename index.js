@@ -22,6 +22,7 @@ const bodyParser = require("body-parser");
 const endMiddleware = require("./startup/resBodyLogger");
 const fs = require('fs');
 const path = require('path');
+const admin = require('firebase-admin')
 
 // To disable CORS
 app.use(function (req, res, next) {
@@ -46,11 +47,48 @@ logger.streamError = {
         logger.error(message);
     }
 };
+
 logger.streamInfo = {
     write: function (message) {
         logger.info(message);
     }
 };
+
+
+const serviceAccount = require("./feedme-7673a-firebase-adminsdk-680au-0931d5784a.json");
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: "https://feedme-7673a.firebaseio.com"
+});
+
+var registrationToken = 'dSN5jeaUixw:APA91bG-XFjVVvgXZQnyzrB9UCi8NI_E8SNLqWPjhFB2IQBDBUYyR86PIvmonXjwuPaxPY6Q2un_ndyGkB0rUNKg7n4z_kz5R9oXJ-UtXrWrBcIOwlch3IBVdyD3J2ihv5hCuGToKndp';
+
+// See the "Defining the message payload" section above for details
+// on how to define a message payload.
+var payload = {
+    
+    data: {
+        "volume" : "3.21.15",
+        "contents" : "http://www.news-magazine.com/world-week/21659772"
+      }
+  };
+  
+  // Set the message as high priority and have it expire after 24 hours.
+  var options = {
+    priority: 'normal',
+    timeToLive: 10 
+  };
+  
+  // Send a message to the device corresponding to the provided
+  // registration token with the provided options.
+  admin.messaging().sendToDevice(registrationToken, payload, options)
+    .then(function(response) {
+      console.log('Successfully sent message:', response);
+    })
+    .catch(function(error) {
+      console.log('Error sending message:', error);
+    });
 
 
 // Logging
