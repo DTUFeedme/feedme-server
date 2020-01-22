@@ -92,31 +92,31 @@ logger.streamInfo = {
 
 
 // Logging
-if (process.env.NODE_ENV !== "production") {
-    app.use(morgan("dev"));
-    // app.use(morgan(":reqBody", { immediate: true }));
+// if (process.env.NODE_ENV !== "production") {
+//     app.use(morgan("dev"));
+//     // app.use(morgan(":reqBody", { immediate: true }));
 
-    // app.use(morgan(":reqBody", {
-    //     stream: logger.streamError,
-    //     skip: (req, res) => res.statusCode < 400
-    // }));
-    // app.use(morgan("DEV: :date[clf] :method :url :status :response-time ms - :res[content-length]", {
-    //     stream: logger.streamError,
-    //     skip: (req, res) => res.statusCode < 400
-    // }));
+//     // app.use(morgan(":reqBody", {
+//     //     stream: logger.streamError,
+//     //     skip: (req, res) => res.statusCode < 400
+//     // }));
+//     // app.use(morgan("DEV: :date[clf] :method :url :status :response-time ms - :res[content-length]", {
+//     //     stream: logger.streamError,
+//     //     skip: (req, res) => res.statusCode < 400
+//     // }));
 
-    app.use(morgan(":reqBody", {
-        stream: logger.streamError,
-        skip: (req, res) => res.statusCode < 400 
-        // To avoid logging sensitive info
-    }));
-    app.use(morgan("DEV: :date[clf] :method :url :status :response-time ms - :res[content-length]", {
-        stream: logger.streamError,
-        skip: (req, res) => res.statusCode < 400
-    }));
+//     app.use(morgan(":reqBody", {
+//         stream: logger.streamError,
+//         skip: (req, res) => res.statusCode < 400 
+//         // To avoid logging sensitive info
+//     }));
+//     app.use(morgan("DEV: :date[clf] :method :url :status :response-time ms - :res[content-length]", {
+//         stream: logger.streamError,
+//         skip: (req, res) => res.statusCode < 400
+//     }));
 
 
-} else {
+// } else {
     app.use(morgan("dev"));
     app.use(morgan(":reqBody", {
         stream: logger.streamError,
@@ -127,7 +127,7 @@ if (process.env.NODE_ENV !== "production") {
         stream: logger.streamError,
         skip: (req, res) => res.statusCode < 400
     }));
-}
+// }
 
 if (!process.env.jwtPrivateKey) {
     logger.error("FATAL ERROR: jwtPrivateKey not set");
