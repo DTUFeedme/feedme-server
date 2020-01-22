@@ -49,7 +49,7 @@ const createUser = async (req, res) => {
         const salt = await bcrypt.genSalt();
         user = new User(_.pick(req.body, ['email', "password"]));
         user.password = await bcrypt.hash(password, salt);
-        user.role = 1; // Authorized
+        user.role = 2; // Authorized
     } else {
         user = new User();
     }
