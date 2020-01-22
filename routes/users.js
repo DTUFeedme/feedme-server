@@ -5,7 +5,7 @@ const userController = require("../controllers/userController");
 
 router.post('/', userController.createUser);
 
-router.get('/', userController.getUsers);// [auth, admin], userController.getUsers);
+router.get('/', [auth, admin], userController.getUsers);
 
 router.patch('/makeBuildingAdmin', auth, userController.makeUserAdmin);
 
