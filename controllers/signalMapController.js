@@ -27,18 +27,17 @@ const createSignalMap = async (req, res) => {
 
         for (let i = 0; i < signalMaps.length; i++) {
             const room = await Room.findById(signalMaps[i].room);
-            if (!room) {
-                return res.status(400).send("Room was not defined: " + signalMaps[i].id);
-            }
+            if (!room) return res.status(400).send("Room was not defined: " + signalMaps[i].id);
 
-            if (room.building.toString() !== buildingId.toString()) {
-                signalMaps.splice(i, 1);
-                i--;
-            }
+            // TODO: Find solution to narrow for building
+            //if (room.building.toString() !== buildingId.toString()) {
+            //    signalMaps.splice(i, 1);
+            //    i--;
+            //}
         }
-        const serverBeacons = await Beacon.find({building: buildingId});
+        const serverBeacons = await Beacon.find(); // {building: buildingId}); Should maybe filter? 
         if (!serverBeacons || serverBeacons.length <= 0)
-            return res.status(400).send("Was unable to find beacon with building id " + buildingId);
+            return res.status(400).send("Was unable to find any beacons");// ("Was unable to find beacon with building id " + buildingId);
 
         const beaconIds = [];
         for (let i = 0; i < serverBeacons.length; i++) {
@@ -60,8 +59,6 @@ const createSignalMap = async (req, res) => {
         }*/
 
     }
-
-
 
     let signalMap = new SignalMap({
         room: roomId || estimatedRoomId,
