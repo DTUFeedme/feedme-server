@@ -7,7 +7,7 @@ const router = express.Router();
 
 router.post('/', [auth, authorized], createRoom);
 
-router.get('/', auth, getRooms);
+router.get('/', [auth, authorized], getRooms);
 
 router.get("/fromBuilding/:id", auth, getRoomsFromBuilding);
 

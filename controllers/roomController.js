@@ -67,7 +67,7 @@ const deleteRoom = async (req, res) => {
 const getRooms = async (req, res) => {
     const {admin, feedback} = req.query;
 
-    // TODO: Replcae with authentication
+    
     let rooms;
     if (admin) {
         if (admin === "me") {
@@ -95,7 +95,7 @@ const getRooms = async (req, res) => {
         }
 
     } else {
-        if (req.user.role < 0) // TODO: Should be 2, not 1
+        if (req.user.role < 2) 
             return res.status(403).send("User should have role admin to get all rooms");
         rooms = await Room.find();
     }
