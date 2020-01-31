@@ -19,7 +19,8 @@ const createSignalMap = async (req, res) => {
 
     let room;
     if (!roomId) {
-        if (!buildingId) res.status(400).send("Please provide either roomId or buildingId");
+        // TODO: 
+        // if (!buildingId) res.status(400).send("Please provide either roomId or buildingId");
 
         let signalMaps = await SignalMap.find({isActive: true});
         if (signalMaps.length <= 0) return res.status(400).send("Unable to estimate room when no active signalMaps " +
@@ -45,7 +46,7 @@ const createSignalMap = async (req, res) => {
         }
         estimatedRoomId = await estimateNearestNeighbors(beacons, signalMaps, 3, beaconIds);
         room = await Room.findById(estimatedRoomId);
-    } else {
+    } else if (req.user.role < 2){
         if (req.user.role < 1) return res.status(403).send("User should be authorized to post active signalmaps");
         room = await Room.findById(roomId);
         if (!room) return res.status(400).send(`Room with id ${roomId} was not found`);
@@ -57,7 +58,6 @@ const createSignalMap = async (req, res) => {
         if (signalMap){
             return res.status(400).send("There is already a signalmap for the given room");
         }*/
-
     }
 
     let signalMap = new SignalMap({
