@@ -92,6 +92,11 @@ describe('/api/beacons', () => {
             const res = await exec();
             expect(res.status).to.equal(200);
         });
+
+        it("Should not be allowed to post 2 beacons with same uuid", async () => {
+            await exec();
+            await expect(exec()).to.be.rejectedWith("Bad Request");
+        })
     });
 
     describe("GET /", () => {

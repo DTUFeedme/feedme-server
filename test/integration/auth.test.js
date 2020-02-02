@@ -122,7 +122,5 @@ describe('/api/auth', () => {
             expect(mongoose.Types.ObjectId.isValid(decodedToken._id)).to.be.true;
 
         });
-
-
     });
 });

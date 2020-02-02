@@ -22,7 +22,7 @@ const bodyParser = require("body-parser");
 const endMiddleware = require("./startup/resBodyLogger");
 const fs = require('fs');
 const path = require('path');
-const admin = require('firebase-admin')
+const admin = require('firebase-admin');
 
 // To disable CORS
 app.use(function (req, res, next) {
@@ -100,7 +100,7 @@ if (process.env.NODE_ENV !== "production") {
         stream: logger.streamError,
         skip: (req, res) => res.statusCode < 400
     }));
-    app.use(morgan("DEV: :date[clf] :method :url :status :response-time ms - :res[content-length]", {
+    app.use(morgan("DEV/TEST: :date[clf] :method :url :status :response-time ms - :res[content-length]", {
         stream: logger.streamError,
         skip: (req, res) => res.statusCode < 400
     }));

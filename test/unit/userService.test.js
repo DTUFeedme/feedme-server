@@ -39,7 +39,4 @@ describe('Should throw error', () => {
           .send({email: "hej", password: "yo"});
     };
 
-    it("Should throw", async () => {
-        await expect(exec()).to.be.rejectedWith("Forbidden");
-    });
 });

@@ -24,7 +24,6 @@ const signalMapSchema = new mongoose.Schema({
 });
 
 function alignAndFillArrays(alignedBeaconIds, unAlignedBeacons) {
-
     if (!alignedBeaconIds || alignedBeaconIds.length <=0)
         throw new IllegalArgumentError("alignedBeaconIds should be at least one-length array");
     const alignedBeacons = new Array(alignedBeaconIds.length);
@@ -98,7 +97,6 @@ function estimateNearestNeighbors(clientBeacons, signalMaps, k, beaconIds) {
     if (!k)
         k = 3;
 
-
     const initialPoints = [];
     for (let i = 0; i < signalMaps.length; i++) {
         const alignedServerBeacons = alignAndFillArrays(beaconIds, signalMaps[i].beacons);
@@ -125,6 +123,7 @@ function estimateNearestNeighbors(clientBeacons, signalMaps, k, beaconIds) {
     for (let i = 0; i < alignedClientBeacons.length; i++) {
         newPointVector.push(alignedClientBeacons[i].signals[0]);
     }
+
     const newPoint = {
         vector: newPointVector
     };
@@ -220,7 +219,9 @@ const SignalMap = mongoose.model('SignalMap', signalMapSchema);
 function validateSignalMap(signalMap) {
     const schema = {
         beacons: Joi.array().items(Joi.object({
-            beaconId: Joi.objectId().required(),
+            uuid: Joi.string()
+                .regex(/^[a-zA-Z\d]{8}-[a-zA-Z\d]{4}-[a-zA-Z\d]{4}-[a-zA-Z\d]{4}-[a-zA-Z\d]{12}$/)
+                .required(),
             signals: Joi.array().items(Joi.number().min(-200).max(0))
         }).required()).required(),
         roomId: Joi.objectId(),
