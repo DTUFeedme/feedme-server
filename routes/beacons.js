@@ -26,7 +26,7 @@ router.post('/', [auth, authorized], async (req, res) => {
     if (!building) return res.status(404).send('Building with id ' + buildingId + ' was not found');
 
     const beacon = new Beacon({
-        building,
+        building: buildingId,
         name,
         uuid
     });

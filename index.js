@@ -100,7 +100,7 @@ if (process.env.NODE_ENV !== "production") {
         stream: logger.streamError,
         skip: (req, res) => res.statusCode < 400
     }));
-    app.use(morgan("DEV/TEST: :date[clf] :method :url :status :response-time ms - :res[content-length]", {
+    app.use(morgan(":date[clf] :method :url :status :response-time ms - :res[content-length]", {
         stream: logger.streamError,
         skip: (req, res) => res.statusCode < 400
     }));

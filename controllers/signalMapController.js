@@ -11,53 +11,59 @@ const createSignalMap = async (req, res) => {
     const {beacons, roomId} = req.body;
     let estimatedRoomId;
 
-    const buildingIds = new Set();
+    /*const buildingIds = new Set();
     for (let i = 0; i < beacons.length; i++) {
         const beacon = await Beacon.findOne({uuid: beacons[i].uuid});
         if (!beacon) return res.status(400).send(`Beacon with uuid ${beacons[i].uuid} did not exist in database`);
         beacons[i]._id = beacon.id;
         buildingIds.add(beacon.building);
-    }
+    }*/
+    const clientBeacons = [];
+    const serverBeacons = await Beacon.find({uuid: beacons.map(b => b.uuid)});
+    if (!serverBeacons || serverBeacons.length <= 0)
+        return res.status(400).send("Was unable to find any matching beacons");
+    const rooms = await Room.find({building: {$in: serverBeacons.map(b => b.building)}});
+
+    beacons.forEach(b => {
+        const sbs = serverBeacons.filter(sb => sb.uuid === b.uuid);
+        if (sbs.length > 0){
+            clientBeacons.push({_id: sbs[0].id, signals: b.signals})
+        }
+    });
+    if (clientBeacons.length <= 0)
+        return res.status(400).send("Unable to find any beacons on server with requested ids ");
 
     let room;
     if (!roomId) {
-        // TODO: 
-        // if (!buildingId) res.status(400).send("Please provide either roomId or buildingId");
 
-        let rooms = await Room.find({building: {$in: Array.from(buildingIds)}});
+        let signalMaps = await SignalMap.find({
+            isActive: true,
+            room: {$in: rooms.map(room => room.id)}
+        });
 
+        if (signalMaps.length <= 0) return res.status(400).send("Unable to find any active signalMaps " +
+            "in current building");
 
-        let signalMaps = await SignalMap.find(
-            {
-                isActive: true,
-                room: {$in: rooms.map(room => room.id)}
-            });
-
-        if (signalMaps.length <= 0) return res.status(400).send("Unable to estimate room when no active signalMaps " +
-            "was found in database");
-
-        for (let i = 0; i < signalMaps.length; i++) {
+/*        for (let i = 0; i < signalMaps.length; i++) {
             const room = await Room.findById(signalMaps[i].room);
             if (!room) return res.status(400).send("Room was not defined: " + signalMaps[i].id);
 
+            // TODO:
             // TODO: Find solution to narrow for building
             //if (room.building.toString() !== buildingId.toString()) {
             //    signalMaps.splice(i, 1);
             //    i--;
             //}
         }
+
         const serverBeacons = await Beacon.find({building: {$in: Array.from(buildingIds)}}); // {building: buildingId}); Should maybe filter?
         if (!serverBeacons || serverBeacons.length <= 0)
             return res.status(400).send("Was unable to find any beacons");// ("Was unable to find beacon with building id " + buildingId);
 
-        const beaconIds = serverBeacons.map(b => b.id);
-        signalMaps.forEach(s => console.log(s.toString()));
+        // const beaconIds = serverBeacons.map(b => b.id);
+        */
 
-        console.log("beacons: ", beacons.length);
-        console.log("Signalmaps: ", signalMaps.length);
-        console.log("BeaconIds: ", beaconIds.length);
-
-        estimatedRoomId = await estimateNearestNeighbors(beacons, signalMaps, 3, beaconIds);
+        estimatedRoomId = await estimateNearestNeighbors(clientBeacons, signalMaps, 3, clientBeacons.map(b => b._id));
         room = await Room.findById(estimatedRoomId);
     } else if (req.user.role < 2){
         if (req.user.role < 1) return res.status(403).send("User should be authorized to post active signalmaps");
@@ -75,7 +81,7 @@ const createSignalMap = async (req, res) => {
 
     let signalMap = new SignalMap({
         room: roomId || estimatedRoomId,
-        beacons,
+        beacons: clientBeacons,
         isActive: !!roomId
     });
 

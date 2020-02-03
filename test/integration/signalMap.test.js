@@ -49,9 +49,9 @@ describe('/api/signalMaps', () => {
 
         const exec = () => {
             return request(server)
-              .post('/api/signalMaps')
-              .set({'x-auth-token': token})
-              .send({roomId, beacons, buildingId})
+                .post('/api/signalMaps')
+                .set({'x-auth-token': token})
+                .send({roomId, beacons, buildingId})
         };
 
         beforeEach(async () => {
@@ -61,7 +61,6 @@ describe('/api/signalMaps', () => {
             const building = new Building({
                 name: "222"
             });
-
 
             await building.save();
 
@@ -171,9 +170,9 @@ describe('/api/signalMaps', () => {
             };
 
             await request(server)
-              .post('/api/signalMaps')
-              .set({'x-auth-token': token})
-              .send(requestFromChril);
+                .post('/api/signalMaps')
+                .set({'x-auth-token': token})
+                .send(requestFromChril);
         });
 
         /*
@@ -831,6 +830,38 @@ describe('/api/signalMaps', () => {
             expect(res.body.room._id.toString()).to.equal(room2.id);
         });
 
+        it("Should ignore (but not crash) when users send signalmaps with unknown beacons", async () => {
+
+            const sm = await new SignalMap({
+                room: roomId,
+                beacons: [{uuid: beaconId, signals: [-39, -41]}],
+                isActive: true
+            }).save();
+
+            // creating signal from unknown beacon
+            beacons.push({
+                uuid: "f7826da6-4fa2-4e98-8024-bc5b71e08hej",
+                signals: [-32]
+            });
+            signals = [-32];
+            roomId = undefined;
+
+            const res = await exec();
+            expect(res.body.room._id).to.equal(sm.room._id.toString());
+        });
+
+        it("Should return 400 if signalmap with only unkown beacons was sent by client", async () => {
+            const sm = await new SignalMap({
+                room: roomId,
+                beacons: [{uuid: beaconId, signals: [-39, -41]}]
+            }).save();
+            beacons = [{
+                uuid: "f7826da6-4fa2-4e98-8024-bc5b71e08hej",
+                signals: [-32]
+            }];
+            roomId = undefined;
+            await expect(exec()).to.be.rejectedWith("Bad Request");
+        })
     });
 
     describe("PATCH /confirm-room/:id Confirm room", () => {
@@ -838,9 +869,9 @@ describe('/api/signalMaps', () => {
         let signalMapId;
         const exec = () => {
             return request(server)
-              .patch('/api/signalMaps/confirm-room/' + signalMapId)
-              .set({'x-auth-token': token})
-              .send({roomId, beacons, buildingId})
+                .patch('/api/signalMaps/confirm-room/' + signalMapId)
+                .set({'x-auth-token': token})
+                .send({roomId, beacons, buildingId})
         };
 
         beforeEach(async () => {
@@ -884,8 +915,8 @@ describe('/api/signalMaps', () => {
 
         const exec = () => {
             return request(server)
-              .get('/api/signalMaps')
-              .set({'x-auth-token': token})
+                .get('/api/signalMaps')
+                .set({'x-auth-token': token})
         };
 
         beforeEach(async () => {

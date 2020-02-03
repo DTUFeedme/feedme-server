@@ -26,19 +26,21 @@ const signalMapSchema = new mongoose.Schema({
 function alignAndFillArrays(alignedBeaconIds, unAlignedBeacons) {
     if (!alignedBeaconIds || alignedBeaconIds.length <=0)
         throw new IllegalArgumentError("alignedBeaconIds should be at least one-length array");
+
+    // Create new array of aligned beacons
     const alignedBeacons = new Array(alignedBeaconIds.length);
 
     const signalLength = unAlignedBeacons[0].signals.length;
 
 
     for (let i = 0; i < alignedBeaconIds.length; i++) {
-        const beacon = unAlignedBeacons
-          .find(beacon => {
-              if (beacon.beaconId) {
-                  return beacon.beaconId.toString() === alignedBeaconIds[i].toString()
-              }
-              return beacon._id.toString() === alignedBeaconIds[i].toString()
+        // Find beacon with particular beacon id
+        const beacon = unAlignedBeacons.find(beacon => {
+              if (beacon.beaconId)
+                  return beacon.beaconId.toString() === alignedBeaconIds[i].toString();
+              return beacon._id.toString() === alignedBeaconIds[i].toString();
           });
+        // If beacon doesn't already exist, then add it with lowest value (-100)
         if (!beacon) {
             alignedBeacons[i] = {
                 beaconId: alignedBeaconIds[i],
@@ -127,7 +129,6 @@ function estimateNearestNeighbors(clientBeacons, signalMaps, k, beaconIds) {
     const newPoint = {
         vector: newPointVector
     };
-
 
     return knnManager.estimatePointType(newPoint);
 
