@@ -178,7 +178,8 @@ describe('/api/feedback', () => {
                 const res = await exec();
                 expect(res.status).to.be.equal(200);
             } catch (e) {
-                logger.error(e.response.text);
+
+
                 throw e;
             }
         });
@@ -645,5 +646,94 @@ describe('/api/feedback', () => {
         });
     });
 
+    describe("PATCH /change-answer/:id", () => {
+
+        let feedback;
+        let baseUrl = "/api/feedback/change-answer/";
+        let feedbackId;
+        let newAnswerId;
+        let body;
+
+        const exec = () => {
+            return request(server)
+                .patch(baseUrl + feedbackId)
+                .set('x-auth-token', token)
+                .send(body);
+        };
+
+        beforeEach(async () => {
+            building = new Building({name: '324'});
+            await building.save();
+
+            token = user.generateAuthToken();
+
+            room = new Room({
+                name: '123',
+                location: '123',
+                building: building._id
+            });
+            await room.save();
+
+            roomId = room._id;
+
+            answerId =   mongoose.Types.ObjectId();
+            newAnswerId = mongoose.Types.ObjectId();
+            question = new Question({
+                value: '123',
+                rooms: [room._id],
+                answerOptions: [{
+                    value: "123",
+                    _id: answerId
+                }, {
+                    value: "1234",
+                    _id: newAnswerId
+                }]
+            });
+            await question.save();
+            questionId = question._id;
+
+            answer = new Answer({value: "perfect", question: question._id});
+            answerId = answer._id;
+            await answer.save();
+
+            feedback = new Feedback({
+                answer: answer._id,
+                question: question._id,
+                user: user._id, room: roomId
+            });
+
+            await feedback.save();
+            feedbackId = feedback.id;
+
+            body = {answerId: newAnswerId}
+
+        });
+
+        it("Should update answer ", async () => {
+            await exec();
+            const feedback = await Feedback.findById(feedbackId);
+            expect(feedback.answer.toString()).to.equal(newAnswerId.toString());
+        });
+
+        it("Should return 400 if answerId did not belong to question ", async () => {
+            newAnswerId = mongoose.Types.ObjectId();
+            const res = await exec();
+            expect(res.statusCode).to.equal(400);
+        });
+
+        it("Should not be allowed to send anything else than answerId", async () => {
+
+            body = {answerId: newAnswerId, "hej": "hej"};
+            const res = await exec();
+            expect(res.statusCode).to.equal(400);
+        });
+
+        it("Should return 404 if feedback object was not found", async () => {
+            feedbackId = mongoose.Types.ObjectId();
+
+            const res = await exec();
+            expect(res.statusCode).to.equal(404);
+        })
+    });
 
 });
