@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const {Feedback, validate} = require('../models/feedback');
+const {Feedback, validate, validateChangeQuestion} = require('../models/feedback');
 const {Room} = require('../models/room');
 const {Answer} = require('../models/answer');
 const {Question} = require('../models/question');
@@ -133,6 +133,30 @@ router.get("/questionStatistics/:questionId", [validateId, auth], async (req, re
     }
 
     res.send(feedbackStats);
+});
+
+router.patch("/change-answer/:feedbackId", [validateId, auth], async (req, res) => {
+
+    const feedbackId = req.params.feedbackId;
+
+    const {error} = validateChangeQuestion(req.body);
+
+    if (error) return res.status(400).send(error.details[0].message);
+
+    let feedback = await Feedback.findById(req.params.feedbackId).populate('question');
+
+    if (!feedback)
+        return res.status(404).send("feedback with id " + feedbackId+ " was not found");
+
+
+    if (!feedback.question.answerOptions.find(e => e.id.toString() === req.body.answerId.toString()))
+        return res.status(400).send("answerId was not included in question's answer options");
+
+
+    console.log(feedback);
+    feedback.answer = req.body.answerId;
+    const newFeedback = await feedback.save();
+    res.send(newFeedback);
 });
 
 

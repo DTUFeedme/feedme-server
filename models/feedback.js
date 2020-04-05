@@ -45,6 +45,14 @@ function validateFeedback(feedback) {
   return Joi.validate(feedback, schema);
 }
 
+function validateChangeQuestion(feedback){
+  const schema = {
+    answerId: Joi.objectId().required()
+  };
+  return Joi.validate(feedback,schema);
+}
+
 exports.Feedback = Feedback;
 exports.validate = validateFeedback;
 exports.feedbackSchema = feedbackSchema;
+exports.validateChangeQuestion = validateChangeQuestion;
