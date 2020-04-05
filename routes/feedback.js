@@ -152,8 +152,6 @@ router.patch("/change-answer/:feedbackId", [validateId, auth], async (req, res) 
     if (!feedback.question.answerOptions.find(e => e.id.toString() === req.body.answerId.toString()))
         return res.status(400).send("answerId was not included in question's answer options");
 
-
-    console.log(feedback);
     feedback.answer = req.body.answerId;
     const newFeedback = await feedback.save();
     res.send(newFeedback);
