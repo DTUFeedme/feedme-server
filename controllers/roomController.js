@@ -26,9 +26,8 @@ const createRoom = async (req, res) => {
 };
 const getRoomsFromBuilding = async (req, res) => {
     const buildingId = req.params.id;
-    // TODO: Should not be in a comment 
-    // if (!req.user.adminOnBuildings.find(elem => elem.toString() === buildingId))
-    // return res.status(403).send("User was not admin on building with id " + buildingId);
+    if (!req.user.adminOnBuildings.find(elem => elem.toString() === buildingId))
+    return res.status(403).send("User was not admin on building with id " + buildingId);
     const rooms = await Room.find({ building: buildingId });
     res.send(rooms);
 };

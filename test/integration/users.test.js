@@ -18,7 +18,7 @@ describe('/api/users', () => {
 
     before(async () => {
         server = app.listen(config.get('port'));
-        await mongoose.connect(config.get('db'), {useNewUrlParser: true});
+        await mongoose.connect(config.get('db'), {useNewUrlParser: true, useUnifiedTopology: true});
     });
     after(async () => {
         await server.close();
@@ -64,12 +64,14 @@ describe('/api/users', () => {
         it("Should return 403 if user was not admin", async () => {
             user.role = 1;
             await user.save();
-            await expect(exec()).to.be.rejectedWith("Forbidden");
+            const res = await exec();
+expect(res.statusCode).to.equal(403);
         });
 
         it("Should return 401 if token not provided", async () => {
             token = null;
-            await expect(exec()).to.be.rejectedWith("Unauthorized");
+            const res = await exec();
+        expect(res.statusCode).to.equal(401);
         });
 
     });
@@ -91,7 +93,8 @@ describe('/api/users', () => {
             // 400 if random parameter in body is passed
             it('400 if  random parameter in body is passed', async () => {
                 body = {hej: "12345"};
-                await expect(exec()).to.be.rejectedWith("Bad Request");
+                const res = await exec();
+                expect(res.statusCode).to.equal(400);
             });
 
             it("Should have user role 0 when no email+password provided", async () => {
@@ -142,12 +145,14 @@ describe('/api/users', () => {
 
             it("should return 400 if email invalid", async () => {
                 email = "user@";
-                await expect(exec()).to.be.rejectedWith("Bad Request");
+                const res = await exec();
+                expect(res.statusCode).to.equal(400);
             });
 
             it("Should not allow two users to be created with the same email", async () => {
                 await exec();
-                await expect(exec()).to.be.rejectedWith("Bad Request");
+                const res = await exec();
+                expect(res.statusCode).to.equal(400);
             });
 
             it("Should return json web token in header that can be decoded to valid mongoose _id", async () => {
@@ -199,12 +204,14 @@ describe('/api/users', () => {
             user.adminOnBuildings = [];
             await user.save();
 
-            await expect(exec()).to.be.rejectedWith("Forbidden");
+            const res = await exec();
+expect(res.statusCode).to.equal(403);
         });
 
         it("Should return 401 if no token provided", async () => {
             token = null;
-            await expect(exec()).to.be.rejectedWith("Unauthorized");
+            const res = await exec();
+        expect(res.statusCode).to.equal(401);
         });
 
         it("Should return updated user with adminOnBuildings updated", async () => {

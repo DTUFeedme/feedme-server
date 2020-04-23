@@ -27,7 +27,7 @@ describe('/api/signalMaps', () => {
 
     before(async () => {
         server = await app.listen(config.get('port'));
-        await mongoose.connect(config.get('db'), {useNewUrlParser: true});
+        await mongoose.connect(config.get('db'), {useNewUrlParser: true, useUnifiedTopology: true});
     });
     after(async () => {
         await server.close();
@@ -525,7 +525,8 @@ describe('/api/signalMaps', () => {
         it("Should return 400 if neither roomId or buildingId provided", async () => {
             buildingId = undefined;
             roomId = undefined;
-            await expect(exec()).to.be.rejectedWith("Bad Request");
+            const res = await exec();
+                expect(res.statusCode).to.equal(400);
         });
 
         it("Should return new signalmap with one length array of beacons", async () => {
@@ -544,7 +545,8 @@ describe('/api/signalMaps', () => {
                 signals
             }];
 
-            await expect(exec()).to.be.rejectedWith("Bad Request");
+            const res = await exec();
+                expect(res.statusCode).to.equal(400);
         });
 
         it("Should return 400 if one of the rssi arrays did not have the same length as the other's", async () => {
@@ -556,7 +558,8 @@ describe('/api/signalMaps', () => {
                 beaconId: mongoose.Types.ObjectId(),
                 signals: [10, 23, 60]
             });
-            await expect(exec()).to.be.rejectedWith("Bad Request");
+            const res = await exec();
+                expect(res.statusCode).to.equal(400);
         });
 
         it("Should set isActive to false by default if room not provided", async () => {
@@ -605,7 +608,8 @@ describe('/api/signalMaps', () => {
                 isActive: false
             });
             roomId = undefined;
-            await expect(exec()).to.be.rejectedWith("Bad Request");
+            const res = await exec();
+                expect(res.statusCode).to.equal(400);
         });
 
         it("Should estimate correct room when nearest neighbor is a tie", async () => {
@@ -730,7 +734,8 @@ describe('/api/signalMaps', () => {
         it("Should return 400 if no signalmap was posted and a room estimation was requested", async () => {
             await SignalMap.deleteMany();
             roomId = undefined;
-            await expect(exec()).to.be.rejectedWith("Bad Request");
+            const res = await exec();
+                expect(res.statusCode).to.equal(400);
         });
 
         it("Should return 403 if roomId provided and user was not authorized", async () => {
@@ -739,7 +744,8 @@ describe('/api/signalMaps', () => {
             await user.save();
 
             buildingId = undefined;
-            await expect(exec()).to.be.rejectedWith("Forbidden");
+            const res = await exec();
+expect(res.statusCode).to.equal(403);
 
         });
 
@@ -747,7 +753,8 @@ describe('/api/signalMaps', () => {
             roomId = mongoose.Types.ObjectId();
             buildingId = undefined;
 
-            await expect(exec()).to.be.rejectedWith("Bad Request");
+            const res = await exec();
+                expect(res.statusCode).to.equal(400);
         });
 
         it("Should return 403 if user was not admin on building where signalmap is posted", async () => {
@@ -756,7 +763,8 @@ describe('/api/signalMaps', () => {
             await user.save();
 
             buildingId = undefined;
-            await expect(exec()).to.be.rejectedWith("Forbidden");
+            const res = await exec();
+expect(res.statusCode).to.equal(403);
         });
 
         it("Should take all signal maps with the same room id into account when estimating room", async () => {
@@ -860,7 +868,8 @@ describe('/api/signalMaps', () => {
                 signals: [-32]
             }];
             roomId = undefined;
-            await expect(exec()).to.be.rejectedWith("Bad Request");
+            const res = await exec();
+                expect(res.statusCode).to.equal(400);
         })
     });
 
@@ -906,7 +915,8 @@ describe('/api/signalMaps', () => {
 
         it("Should return 404 if signal map did not exist", async () => {
             signalMapId = mongoose.Types.ObjectId();
-            await expect(exec()).to.be.rejectedWith("Not Found");
+            const res = await exec();
+        expect(res.statusCode).to.equal(404);
         });
     });
 
