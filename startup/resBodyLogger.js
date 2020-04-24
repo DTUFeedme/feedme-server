@@ -14,7 +14,8 @@ module.exports = endMiddleware = (req, res, next) => {
     };
 
     res.end = (...restArgs) => {
-        if (res.statusCode >= 400 || process.env.NODE_ENV === "test") {
+        const environment = process.env.NODE_ENV;
+        if (res.statusCode >= 400 || environment === "test") {
 
             if (restArgs[0]) {
                 chunks.push(Buffer.from(restArgs[0]));
@@ -25,6 +26,9 @@ module.exports = endMiddleware = (req, res, next) => {
             if (body.includes("<!DOCTYPE html>"))
                 body = body.substring(0, 25) + "...";
             logger.error(body);
+            if (environment === "test")
+                console.log(body);
+
         }
         defaultEnd.apply(res, restArgs);
     };

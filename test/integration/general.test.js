@@ -21,7 +21,7 @@ describe("/api/general/", () => {
 
     before(async () => {
         server = app.listen(config.get('port'));
-        await mongoose.connect(config.get('db'), {useNewUrlParser: true});
+        await mongoose.connect(config.get('db'), {useNewUrlParser: true, useUnifiedTopology: true});
     });
     after(async () => {
         await server.close();
@@ -78,7 +78,8 @@ describe("/api/general/", () => {
             token = user.generateAuthToken();
             await user.save();
 
-            await expect(exec()).to.be.rejectedWith("Forbidden");
+            const res = await exec();
+expect(res.statusCode).to.equal(403);
         });
 
         it("Should not be possible for user role 0 to delete db", async () => {
@@ -86,7 +87,8 @@ describe("/api/general/", () => {
             token = user.generateAuthToken();
             await user.save();
 
-            await expect(exec()).to.be.rejectedWith("Forbidden");
+            const res = await exec();
+expect(res.statusCode).to.equal(403);
         });
 
         it("Should not delete admins ", async () => {

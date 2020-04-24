@@ -20,7 +20,7 @@ describe('/api/questions', () => {
 
     before(async () => {
         server = await app.listen(config.get('port'));
-        await mongoose.connect(config.get('db'), {useNewUrlParser: true});
+        await mongoose.connect(config.get('db'), {useNewUrlParser: true, useUnifiedTopology: true});
     });
     after(async () => {
         await server.close();
@@ -87,35 +87,40 @@ describe('/api/questions', () => {
 
         it('Should return 401 if token not provided', async () => {
             token = null;
-            await expect(exec()).to.be.rejectedWith("Unauthorized");
+            const res = await exec();
+        expect(res.statusCode).to.equal(401);
 
         });
 
         it('401 if wrong token format sent', async () => {
             token = "hej";
-            await expect(exec()).to.be.rejectedWith("Unauthorized");
+            const res = await exec();
+        expect(res.statusCode).to.equal(401);
         });
 
         it('404 if user was not found', async () => {
             user = new User();
             token = user.generateAuthToken();
-            await expect(exec()).to.be.rejectedWith("Not Found");
+            const res = await exec();
+        expect(res.statusCode).to.equal(404);
         });
 
         it('400 if roomId not provided', async () => {
             roomId = null;
-            await expect(exec()).to.be.rejectedWith("Bad Request");
+            const res = await exec();expect(res.statusCode).to.equal(400);
         });
 
         it('400 if roomId was wrong format', async () => {
             roomId = '12345';
-            await expect(exec()).to.be.rejectedWith("Bad Request");
+            const res = await exec();
+expect(res.statusCode).to.equal(400);
         });
 
         it('404 if room was not found', async () => {
 
             roomId = mongoose.Types.ObjectId();
-            await expect(exec()).to.be.rejectedWith("Not Found");
+            const res = await exec();
+        expect(res.statusCode).to.equal(404);
 
         });
         it('should return questions array with 1 length', async () => {
@@ -175,14 +180,15 @@ describe('/api/questions', () => {
             expect(res.body[0].answerOptions[0]._id).to.equal(answerOption1.id);
         });
 
-        it("Should only return question which user hasn't answered", async () => {
+        // TODO: Feature might be added in the future
+        /*it("Should only return question which user hasn't answered", async () => {
             queryString = "/?notAnswered=true";
             question.usersAnswered.push(user._id);
             await question.save();
 
             const res = await exec();
             expect(res.body.length).to.equal(0);
-        })
+        })*/
     });
 
     describe("GET /active", () => {
@@ -287,30 +293,35 @@ describe('/api/questions', () => {
 
         it('401 if token not provided', async () => {
             token = null;
-            await expect(exec()).to.be.rejectedWith("Unauthorized");
+            const res = await exec();
+        expect(res.statusCode).to.equal(401);
         });
 
         it('401 if token not valid', async () => {
             token = '12345';
-            await expect(exec()).to.be.rejectedWith("Unauthorized");
+            const res = await exec();
+        expect(res.statusCode).to.equal(401);
         });
 
         it('404 if user was not found', async () => {
 
             const user2 = new User();
             token = user2.generateAuthToken();
-            await expect(exec()).to.be.rejectedWith("Not Found");
+            const res = await exec();
+            expect(res.statusCode).to.equal(404);
 
         });
 
         it('400 if roomId not provided', async () => {
             rooms = [null];
-            await expect(exec()).to.be.rejectedWith("Bad Request");
+            const res = await exec();
+expect(res.statusCode).to.equal(400);
         });
 
         it('400 if roomId not valid', async () => {
             rooms = ['12345'];
-            await expect(exec()).to.be.rejectedWith("Bad Request");
+            const res = await exec();
+expect(res.statusCode).to.equal(400);
         });
 
         it("400 if question posted in rooms of different buildings", async () => {
@@ -329,40 +340,47 @@ describe('/api/questions', () => {
             }).save();
 
             rooms = [roomId, room.id];
-            await expect(exec()).to.be.rejectedWith("Bad Request");
+            const res = await exec();
+expect(res.statusCode).to.equal(400);
         });
 
         it('404 if roomId not found', async () => {
             rooms = [mongoose.Types.ObjectId()];
-            await expect(exec()).to.be.rejectedWith("Not Found");
+            const res = await exec();
+        expect(res.statusCode).to.equal(404);
         });
 
         it('400 if value not provided', async () => {
             value = null;
-            await expect(exec()).to.be.rejectedWith("Bad Request");
+            const res = await exec();
+expect(res.statusCode).to.equal(400);
         });
 
         it("Should return 403 if user not authorized role (1)", async () => {
             user.role = 0;
             await user.save();
 
-            await expect(exec()).to.be.rejectedWith("Forbidden");
+            const res = await exec();
+expect(res.statusCode).to.equal(403);
         });
 
         it('403 if user not admin on building', async () => {
             user.adminOnBuildings = null;
             await user.save();
-            await expect(exec()).to.be.rejectedWith("Forbidden");
+            const res = await exec();
+expect(res.statusCode).to.equal(403);
         });
 
         it("Should return 400 if two or more answer options were not given", async () => {
             answerOptions = null;
-            await expect(exec()).to.be.rejectedWith("Bad Request");
+            const res = await exec();
+expect(res.statusCode).to.equal(400);
         });
 
         it("Should return 400 if answeroptions did not have minimum 2 elements", async () => {
             answerOptions = ["Too hot"];
-            await expect(exec()).to.be.rejectedWith("Bad Request");
+            const res = await exec();
+expect(res.statusCode).to.equal(400);
         });
 
         it('should return question object with proper room id', async () => {
@@ -476,7 +494,8 @@ describe('/api/questions', () => {
 
         it("Should return 400 if isActive not provided", async () => {
             body = {};
-            await expect(exec()).to.be.rejectedWith("Bad Request");
+            const res = await exec();
+expect(res.statusCode).to.equal(400);
         });
         it("Should change isActive", async () => {
             const res = await exec();
@@ -574,7 +593,8 @@ describe('/api/questions', () => {
             }).save();
 
             questionId = newQuestion.id;
-            await expect(exec()).to.be.rejectedWith("Forbidden");
+            const res = await exec();
+expect(res.statusCode).to.equal(403);
 
         });
         it("Should delete all answers for that question", async () => {

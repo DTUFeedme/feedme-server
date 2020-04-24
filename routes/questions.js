@@ -32,8 +32,8 @@ router.post('/', [auth], async (req, res) => {
         if (!building) return res.status(404).send('Building with id ' + room.building + ' was not found.');
         if (!tempBuilding) {
             tempBuilding = building;
-            if (!user.adminOnBuildings ||
-              !user.adminOnBuildings.find(elem => elem.toString() === building._id.toString())) {
+            if (user.role !== 2 && (!user.adminOnBuildings ||
+              !user.adminOnBuildings.find(elem => elem.toString() === building._id.toString()))) {
                 return res.status(403).send('Admin rights on the building are required to post new questions');
             }
         } else if (tempBuilding !== building) {
@@ -63,6 +63,8 @@ router.post('/', [auth], async (req, res) => {
 router.get('/', auth, async (req, res) => {
     const query = req.query;
     const user = req.user;
+
+    
     const roomId = req.header('roomId');
     if (!roomId) return res.status(400).send('No room id provided');
 

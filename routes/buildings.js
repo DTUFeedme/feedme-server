@@ -1,9 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const router = express.Router();
-const Fawn = require('fawn');
 const {auth, authorized} = require('../middleware/auth');
-Fawn.init(mongoose);
 const validId = require("../middleware/validateIdParam");
 const buildingController = require("../controllers/buildingController");
 

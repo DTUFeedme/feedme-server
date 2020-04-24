@@ -30,7 +30,7 @@ describe('/api/feedback', () => {
 
     before(async () => {
         server = await app.listen(config.get('port'));
-        await mongoose.connect(config.get('db'), {useNewUrlParser: true});
+        await mongoose.connect(config.get('db'), {useNewUrlParser: true, useUnifiedTopology: true});
     });
     after(async () => {
         await server.close();
@@ -54,9 +54,9 @@ describe('/api/feedback', () => {
 
         const exec = () => {
             return request(server)
-              .post('/api/feedback')
-              .set({'x-auth-token': token})
-              .send({roomId, questionId, answerId})
+                .post('/api/feedback')
+                .set({'x-auth-token': token})
+                .send({roomId, questionId, answerId})
         };
 
         beforeEach(async () => {
@@ -96,34 +96,40 @@ describe('/api/feedback', () => {
 
         it('should return 401 if token not provided', async () => {
             token = "";
-            await expect(exec()).to.be.rejectedWith("Unauthorized");
+            const res = await exec();
+            expect(res.statusCode).to.equal(401);
         });
 
         it('should return 401 if invalid token', async () => {
             token = '123';
-            await expect(exec()).to.be.rejectedWith("Unauthorized");
+            const res = await exec();
+            expect(res.statusCode).to.equal(401);
         });
 
 
         it('401 if invalid token', async () => {
             token = jwt.sign({hej: "hej"}, "hej");
-            await expect(exec()).to.be.rejectedWith("Unauthorized");
+            const res = await exec();
+            expect(res.statusCode).to.equal(401);
 
         });
 
         it('400 if roomId not provided', async () => {
             roomId = null;
-            await expect(exec()).to.be.rejectedWith("Bad Request");
+            const res = await exec();
+            expect(res.statusCode).to.equal(400);
         });
 
         it('400 if question not provided', async () => {
             questionId = null;
-            await expect(exec()).to.be.rejectedWith("Bad Request");
+            const res = await exec();
+            expect(res.statusCode).to.equal(400);
         });
 
         it('400 if questionId not set', async () => {
             questionId = null;
-            await expect(exec()).to.be.rejectedWith("Bad Request");
+            const res = await exec();
+            expect(res.statusCode).to.equal(400);
         });
 
 
@@ -148,7 +154,8 @@ describe('/api/feedback', () => {
 
             questionId = question2.id;
 
-            await expect(exec()).to.be.rejectedWith("Bad Request");
+            const res = await exec();
+            expect(res.statusCode).to.equal(400);
         });
 
         it('400 if question array length was not the same as room question array length', async () => {
@@ -158,19 +165,20 @@ describe('/api/feedback', () => {
         it("Should return 400 if question was from other room than feedback", async () => {
             question.rooms = [mongoose.Types.ObjectId()];
             await question.save();
-            await expect(exec()).to.be.rejectedWith("Bad Request");
+            const res = await exec();
+            expect(res.statusCode).to.equal(400);
         });
 
         it("Should be ok if question was posted to other rooms as well", async () => {
-          question.rooms.push(mongoose.Types.ObjectId());
-          await question.save();
-          try {
-              const res = await exec();
-              expect(res.status).to.be.equal(200);
-          } catch (e) {
-              logger.error(e.response.text);
-              throw e;
-          }
+            question.rooms.push(mongoose.Types.ObjectId());
+            await question.save();
+            try {
+                const res = await exec();
+                expect(res.status).to.be.equal(200);
+            } catch (e) {
+                logger.error(e.response.text);
+                throw e;
+            }
         });
 
         it('should return 200 if all fields provided correctly', async () => {
@@ -184,7 +192,8 @@ describe('/api/feedback', () => {
             }
         });
 
-        it("Should add user to usersAnswered list of question", async () => {
+        // TODO: Might be added in the future:
+        /*it("Should add user to usersAnswered list of question", async () => {
             await exec();
             const q = await Question.findById(questionId);
             expect(q.usersAnswered[0].toString()).to.equal(user.id);
@@ -194,9 +203,10 @@ describe('/api/feedback', () => {
 
             question.usersAnswered.push(user.id);
             await question.save();
-            await expect(exec()).to.be.rejectedWith("Bad Request");
+            const res = await exec();
+            expect(res.statusCode).to.equal(400);
 
-        });
+        });*/
 
     });
 
@@ -241,7 +251,8 @@ describe('/api/feedback', () => {
 
         it('should return 404 if room not found', async () => {
             roomId = mongoose.Types.ObjectId();
-            await expect(exec()).to.be.rejectedWith("Not Found");
+            const res = await exec();
+        expect(res.statusCode).to.equal(404);
         });
 
         it('should return feedback with roomId', async () => {
@@ -343,8 +354,8 @@ describe('/api/feedback', () => {
 
         const exec = () => {
             return request(server)
-              .get(baseUrl + queryStrings)
-              .set('x-auth-token', jsonToken);
+                .get(baseUrl + queryStrings)
+                .set('x-auth-token', jsonToken);
         };
 
         beforeEach(async () => {
@@ -391,7 +402,8 @@ describe('/api/feedback', () => {
 
             it("Should return 400 if bad query parsed", async () => {
                 queryStrings = "?user=hej";
-                await expect(exec()).to.be.rejectedWith("Bad Request");
+                const res = await exec();
+                expect(res.statusCode).to.equal(400);
             });
 
             it("Should only return one length array when user query parsed", async () => {
@@ -566,8 +578,8 @@ describe('/api/feedback', () => {
 
             const exec = () => {
                 return request(server)
-                  .get(baseUrl + queryStrings)
-                  .set('x-auth-token', jsonToken);
+                    .get(baseUrl + queryStrings)
+                    .set('x-auth-token', jsonToken);
             };
 
             beforeEach(async () => {
@@ -676,7 +688,7 @@ describe('/api/feedback', () => {
 
             roomId = room._id;
 
-            answerId =   mongoose.Types.ObjectId();
+            answerId = mongoose.Types.ObjectId();
             newAnswerId = mongoose.Types.ObjectId();
             question = new Question({
                 value: '123',
@@ -716,7 +728,7 @@ describe('/api/feedback', () => {
         });
 
         it("Should return 400 if answerId did not belong to question ", async () => {
-            newAnswerId = mongoose.Types.ObjectId();
+            body.answerId = mongoose.Types.ObjectId();
             const res = await exec();
             expect(res.statusCode).to.equal(400);
         });

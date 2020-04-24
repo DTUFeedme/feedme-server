@@ -24,22 +24,23 @@ const signalMapSchema = new mongoose.Schema({
 });
 
 function alignAndFillArrays(alignedBeaconIds, unAlignedBeacons) {
-
     if (!alignedBeaconIds || alignedBeaconIds.length <=0)
         throw new IllegalArgumentError("alignedBeaconIds should be at least one-length array");
+
+    // Create new array of aligned beacons
     const alignedBeacons = new Array(alignedBeaconIds.length);
 
     const signalLength = unAlignedBeacons[0].signals.length;
 
 
     for (let i = 0; i < alignedBeaconIds.length; i++) {
-        const beacon = unAlignedBeacons
-          .find(beacon => {
-              if (beacon.beaconId) {
-                  return beacon.beaconId.toString() === alignedBeaconIds[i].toString()
-              }
-              return beacon._id.toString() === alignedBeaconIds[i].toString()
+        // Find beacon with particular beacon id
+        const beacon = unAlignedBeacons.find(beacon => {
+              if (beacon.beaconId)
+                  return beacon.beaconId.toString() === alignedBeaconIds[i].toString();
+              return beacon._id.toString() === alignedBeaconIds[i].toString();
           });
+        // If beacon doesn't already exist, then add it with lowest value (-100)
         if (!beacon) {
             alignedBeacons[i] = {
                 beaconId: alignedBeaconIds[i],
@@ -98,7 +99,6 @@ function estimateNearestNeighbors(clientBeacons, signalMaps, k, beaconIds) {
     if (!k)
         k = 3;
 
-
     const initialPoints = [];
     for (let i = 0; i < signalMaps.length; i++) {
         const alignedServerBeacons = alignAndFillArrays(beaconIds, signalMaps[i].beacons);
@@ -125,10 +125,10 @@ function estimateNearestNeighbors(clientBeacons, signalMaps, k, beaconIds) {
     for (let i = 0; i < alignedClientBeacons.length; i++) {
         newPointVector.push(alignedClientBeacons[i].signals[0]);
     }
+
     const newPoint = {
         vector: newPointVector
     };
-
 
     return knnManager.estimatePointType(newPoint);
 
@@ -220,7 +220,9 @@ const SignalMap = mongoose.model('SignalMap', signalMapSchema);
 function validateSignalMap(signalMap) {
     const schema = {
         beacons: Joi.array().items(Joi.object({
-            beaconId: Joi.objectId().required(),
+            uuid: Joi.string()
+                .regex(/^[a-zA-Z\d]{8}-[a-zA-Z\d]{4}-[a-zA-Z\d]{4}-[a-zA-Z\d]{4}-[a-zA-Z\d]{12}$/)
+                .required(),
             signals: Joi.array().items(Joi.number().min(-200).max(0))
         }).required()).required(),
         roomId: Joi.objectId(),
