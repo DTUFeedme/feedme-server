@@ -56,7 +56,6 @@ const getBuildings = async (req, res) => {
     if (admin === "me") {
         buildings = await Building.find({ _id: { $in: user.adminOnBuildings } });
     } else if (admin) {
-        // TODO: This should be 2 - not 0 - but done for testing. 
         if (user.role < 2) return res.status(403).send("User did not have authorized role (admin)" +
             " to view buildings of other admins");
 
