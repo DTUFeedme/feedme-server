@@ -5,6 +5,7 @@ const {Beacon} = require("../models/beacon");
 
 const createSignalMap = async (req, res) => {
     const {error} = validate(req.body);
+    const user = req.user;
 
     if (error) return res.status(400).send(error.details[0].message);
 
@@ -65,12 +66,15 @@ const createSignalMap = async (req, res) => {
 
         estimatedRoomId = await estimateNearestNeighbors(clientBeacons, signalMaps, 3, clientBeacons.map(b => b._id));
         room = await Room.findById(estimatedRoomId);
-    } else if (req.user.role < 2){
-        if (req.user.role < 1) return res.status(403).send("User should be authorized to post active signalmaps");
+        user.currentRoom = estimatedRoomId;
+        user.roomLastUpdated = new Date();
+        await user.save();
+    } else if (user.role < 2){
+        if (user.role < 1) return res.status(403).send("User should be authorized to post active signalmaps");
         room = await Room.findById(roomId);
         if (!room) return res.status(400).send(`Room with id ${roomId} was not found`);
 
-        if (!req.user.adminOnBuildings.find(elem => room.building.toString() === elem.toString()))
+        if (!user.adminOnBuildings.find(elem => room.building.toString() === elem.toString()))
             return res.status(403).send("User was not admin on building containing room " + roomId);
 
         /*const signalMap = await SignalMap.findOne({room: roomId});

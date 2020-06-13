@@ -38,8 +38,8 @@ describe('/api/users', () => {
         let query;
         const exec = () => {
             return request(server)
-              .get("/api/users" + query)
-              .set('x-auth-token', token);
+                .get("/api/users" + query)
+                .set('x-auth-token', token);
         };
 
         beforeEach(async () => {
@@ -50,6 +50,7 @@ describe('/api/users', () => {
             });
             token = user.generateAuthToken();
             await user.save();
+            console.log(user);
             query = "";
         });
 
@@ -65,14 +66,46 @@ describe('/api/users', () => {
             user.role = 1;
             await user.save();
             const res = await exec();
-expect(res.statusCode).to.equal(403);
+            expect(res.statusCode).to.equal(403);
         });
 
         it("Should return 401 if token not provided", async () => {
             token = null;
             const res = await exec();
-        expect(res.statusCode).to.equal(401);
+            expect(res.statusCode).to.equal(401);
         });
+
+    });
+
+    describe("GET /location", () => {
+        const exec = () => {
+            return request(server)
+                .get("/api/users/location" )
+                .set('x-auth-token', token);
+        };
+
+        beforeEach(async () => {
+            user = new User({
+                currentRoom: "324",
+                roomLastUpdated: new Date(),
+                role: 2
+            });
+            token = user.generateAuthToken();
+            await user.save();
+        });
+
+        it("Should return a list of users with proper length", async () => {
+            const res = await exec();
+            expect(res.body.length).to.equal(2);
+        });
+
+        it("Should return only user id, currentRoom and roomLastUpdated", async () => {
+            const res = await exec();
+            const fetchedUser = res.body.find(e => e._id === user.id);
+
+            expect(Object.keys(fetchedUser).length).to.equal(3);
+        });
+
 
     });
 
@@ -86,8 +119,8 @@ expect(res.statusCode).to.equal(403);
 
             const exec = () => {
                 return request(server)
-                  .post("/api/users")
-                  .send(body);
+                    .post("/api/users")
+                    .send(body);
             };
 
             // 400 if random parameter in body is passed
@@ -117,8 +150,8 @@ expect(res.statusCode).to.equal(403);
 
             const exec = () => {
                 return request(server)
-                  .post('/api/users')
-                  .send({email, password});
+                    .post('/api/users')
+                    .send({email, password});
             };
 
             beforeEach(async () => {
@@ -192,12 +225,12 @@ expect(res.statusCode).to.equal(403);
 
         const exec = () => {
             return request(server)
-              .patch("/api/users/makeBuildingAdmin")
-              .set('x-auth-token', token)
-              .send({
-                  userId: newUserId,
-                  buildingId: buildingId
-              });
+                .patch("/api/users/makeBuildingAdmin")
+                .set('x-auth-token', token)
+                .send({
+                    userId: newUserId,
+                    buildingId: buildingId
+                });
         };
 
         it("Should return 403 if user was not admin on building", async () => {
@@ -205,13 +238,13 @@ expect(res.statusCode).to.equal(403);
             await user.save();
 
             const res = await exec();
-expect(res.statusCode).to.equal(403);
+            expect(res.statusCode).to.equal(403);
         });
 
         it("Should return 401 if no token provided", async () => {
             token = null;
             const res = await exec();
-        expect(res.statusCode).to.equal(401);
+            expect(res.statusCode).to.equal(401);
         });
 
         it("Should return updated user with adminOnBuildings updated", async () => {
@@ -220,4 +253,7 @@ expect(res.statusCode).to.equal(403);
         });
 
     });
+
+
+
 });
