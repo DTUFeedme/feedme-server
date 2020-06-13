@@ -2,8 +2,6 @@ const logger = require("../startup/logger");
 
 module.exports = endMiddleware = (req, res, next) => {
 
-
-
     const defaultWrite = res.write;
     const defaultEnd = res.end;
     const chunks = [];

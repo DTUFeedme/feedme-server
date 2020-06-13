@@ -7,6 +7,8 @@ router.post('/', userController.createUser);
 
 router.get('/', [auth, admin], userController.getUsers);
 
+router.get('/location', [auth, admin], userController.getUsersLocation);
+
 router.patch('/makeBuildingAdmin', auth, userController.makeUserAdmin);
 
 

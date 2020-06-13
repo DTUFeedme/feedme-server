@@ -16,7 +16,7 @@ const buildings = require('./routes/buildings');
 const auth = require('./routes/auth');
 const signalMaps = require('./routes/signalMaps');
 const error = require('./middleware/error');
-const { createLogger, format, transports } = require('winston');
+const {createLogger, format, transports} = require('winston');
 const morgan = require('morgan');
 const bodyParser = require("body-parser");
 const endMiddleware = require("./startup/resBodyLogger");
@@ -42,6 +42,10 @@ const baseUrl = config.get("base-url") || "/api/";
 
 const logger = require("./startup/logger");
 
+// cron.schedule("* * * * * *", () => {
+//     console.log("hey");
+// }, null);
+
 logger.streamError = {
     write: function (message) {
         logger.error(message);
@@ -53,6 +57,7 @@ logger.streamInfo = {
         logger.info(message);
     }
 };
+
 
 
 /*const serviceAccount = require("./feedme-7673a-firebase-adminsdk-680au-0931d5784a.json");
@@ -93,7 +98,7 @@ var payload = {
 // Logging
 if (process.env.NODE_ENV !== "production") {
     app.use(morgan("dev"));
-    app.use(morgan(":reqBody", { immediate: true }));
+    app.use(morgan(":reqBody", {immediate: true}));
 
     app.use(morgan(":reqBody", {
         stream: logger.streamError,
@@ -127,7 +132,7 @@ if (!process.env.jwtPrivateKey) {
 if (process.env.NODE_ENV !== 'test') {
     app.listen(port, () => console.log(`Listening on port ${port}...`));
     const db = config.get('db');
-    mongoose.connect(db, { useNewUrlParser: true , useUnifiedTopology: true})
+    mongoose.connect(db, {useNewUrlParser: true, useUnifiedTopology: true})
         .then(() => console.log(`Connected to ${db}...`))
         .catch(err => console.log('Could not connect to MongoDB...', err));
 }

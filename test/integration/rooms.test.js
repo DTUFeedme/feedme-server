@@ -264,6 +264,96 @@ describe('/api/rooms', () => {
 
     });
 
+    describe("GET rooms in building /fromBuilding/:id/userCount", () => {
+        let token;
+        let buildingId;
+        let room;
+
+        const exec = () => {
+            return request(server)
+                .get('/api/rooms/fromBuilding/' + buildingId + "/userCount")
+                .set('x-auth-token', token);
+        };
+
+        beforeEach(async () => {
+            const building = new Building({name: '324'});
+            buildingId = building.id;
+            room = new Room({name: "222", location: "123", building: building._id});
+            let room2 = new Room({name: "221", location: "456", building: mongoose.Types.ObjectId()});
+            user.adminOnBuildings = [buildingId];
+            user.currentRoom = room.id;
+            user.roomLastUpdated = new Date();
+            await user.save();
+
+            token = user.generateAuthToken();
+            await building.save();
+            await room.save();
+            await room2.save();
+        });
+
+        it("Should only display rooms from building which user is admin on", async () => {
+            const res = await exec();
+            expect(res.body.length).to.equal(1);
+        })
+
+        it("Should not allow userCount from buildings which user is not admin on", async () => {
+            buildingId = mongoose.Types.ObjectId();
+            const res = await exec();
+            expect(res.statusCode).to.equal(403);
+
+        });
+
+        it("Should return only roomId, room name and user count", async () => {
+            const res = await exec();
+            const newRoom = res.body[0];
+
+            expect(Object.keys(newRoom).length).to.equal(3);
+            expect(newRoom._id).to.equal(room._id.toString());
+        });
+
+        it("Should update userCount if more users have set their currentRoom", async () => {
+            const user2 = new User({currentRoom: room.id, roomLastUpdated: new Date()});
+            const user3 = new User({currentRoom: room.id, roomLastUpdated: new Date()});
+
+            await user2.save();
+            await user3.save();
+
+            const res = await exec();
+            const newRoom = res.body[0];
+            expect(newRoom.userCount).to.equal(3);
+        });
+
+        it("Should only count users who have updated their room within the last half hour", async () => {
+            const oldDate = new Date();
+            oldDate.setMinutes(oldDate.getMinutes() - 30);
+            const user2 = new User({currentRoom: room.id, roomLastUpdated: oldDate});
+            await user2.save();
+            const res = await exec();
+            const newRoom = res.body[0];
+            expect(newRoom.userCount).to.equal(1);
+        });
+
+        it("Should count users who have updated their room within the last half hour", async () => {
+            const oldDate = new Date();
+            oldDate.setMinutes(oldDate.getMinutes() - 29);
+            const user2 = new User({currentRoom: room.id, roomLastUpdated: oldDate});
+            await user2.save();
+            const res = await exec();
+            const newRoom = res.body[0];
+            expect(newRoom.userCount).to.equal(2);
+        });
+
+        it("Should only allow authorized user", async () => {
+            user.role = 0;
+            token = user.generateAuthToken();
+            await user.save();
+            const res = await exec();
+            expect(res.statusCode).to.equal(403);
+
+        })
+
+    });
+
     describe("DELETE /:id", () => {
         let roomId;
         let token;
