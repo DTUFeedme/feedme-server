@@ -228,7 +228,7 @@ describe('Location estimation algorithm', () => {
 
         it("should return non-updated array when newNeighbor is further away", () => {
             const nearestNeighbors = exec();
-            newNeighbor = {distance: 10, room: mongoose.Types.ObjectId()}
+            newNeighbor = {distance: 10, room: mongoose.Types.ObjectId()};
 
             const index = nearestNeighbors.findIndex(elem => elem.room === newNeighbor.room);
 

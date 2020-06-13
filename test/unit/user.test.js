@@ -103,7 +103,6 @@ describe("User", () => {
         it("Should not accept invalid emails", () => {
             email = "123";
             const {error} = exec();
-            console.log("error", error.message);
             expect(error).to.be.ok;
         });
     });

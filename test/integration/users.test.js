@@ -18,7 +18,7 @@ describe('/api/users', () => {
 
     before(async () => {
         server = app.listen(config.get('port'));
-        await mongoose.connect(config.get('db'), {useNewUrlParser: true});
+        await mongoose.connect(config.get('db'), {useNewUrlParser: true, useUnifiedTopology: true});
     });
     after(async () => {
         await server.close();
@@ -38,8 +38,8 @@ describe('/api/users', () => {
         let query;
         const exec = () => {
             return request(server)
-              .get("/api/users" + query)
-              .set('x-auth-token', token);
+                .get("/api/users" + query)
+                .set('x-auth-token', token);
         };
 
         beforeEach(async () => {
@@ -50,6 +50,7 @@ describe('/api/users', () => {
             });
             token = user.generateAuthToken();
             await user.save();
+            console.log(user);
             query = "";
         });
 
@@ -64,13 +65,47 @@ describe('/api/users', () => {
         it("Should return 403 if user was not admin", async () => {
             user.role = 1;
             await user.save();
-            await expect(exec()).to.be.rejectedWith("Forbidden");
+            const res = await exec();
+            expect(res.statusCode).to.equal(403);
         });
 
         it("Should return 401 if token not provided", async () => {
             token = null;
-            await expect(exec()).to.be.rejectedWith("Unauthorized");
+            const res = await exec();
+            expect(res.statusCode).to.equal(401);
         });
+
+    });
+
+    describe("GET /location", () => {
+        const exec = () => {
+            return request(server)
+                .get("/api/users/location" )
+                .set('x-auth-token', token);
+        };
+
+        beforeEach(async () => {
+            user = new User({
+                currentRoom: "324",
+                roomLastUpdated: new Date(),
+                role: 2
+            });
+            token = user.generateAuthToken();
+            await user.save();
+        });
+
+        it("Should return a list of users with proper length", async () => {
+            const res = await exec();
+            expect(res.body.length).to.equal(2);
+        });
+
+        it("Should return only user id, currentRoom and roomLastUpdated", async () => {
+            const res = await exec();
+            const fetchedUser = res.body.find(e => e._id === user.id);
+
+            expect(Object.keys(fetchedUser).length).to.equal(3);
+        });
+
 
     });
 
@@ -84,14 +119,15 @@ describe('/api/users', () => {
 
             const exec = () => {
                 return request(server)
-                  .post("/api/users")
-                  .send(body);
+                    .post("/api/users")
+                    .send(body);
             };
 
             // 400 if random parameter in body is passed
             it('400 if  random parameter in body is passed', async () => {
                 body = {hej: "12345"};
-                await expect(exec()).to.be.rejectedWith("Bad Request");
+                const res = await exec();
+                expect(res.statusCode).to.equal(400);
             });
 
             it("Should have user role 0 when no email+password provided", async () => {
@@ -114,8 +150,8 @@ describe('/api/users', () => {
 
             const exec = () => {
                 return request(server)
-                  .post('/api/users')
-                  .send({email, password});
+                    .post('/api/users')
+                    .send({email, password});
             };
 
             beforeEach(async () => {
@@ -142,12 +178,14 @@ describe('/api/users', () => {
 
             it("should return 400 if email invalid", async () => {
                 email = "user@";
-                await expect(exec()).to.be.rejectedWith("Bad Request");
+                const res = await exec();
+                expect(res.statusCode).to.equal(400);
             });
 
             it("Should not allow two users to be created with the same email", async () => {
                 await exec();
-                await expect(exec()).to.be.rejectedWith("Bad Request");
+                const res = await exec();
+                expect(res.statusCode).to.equal(400);
             });
 
             it("Should return json web token in header that can be decoded to valid mongoose _id", async () => {
@@ -187,24 +225,26 @@ describe('/api/users', () => {
 
         const exec = () => {
             return request(server)
-              .patch("/api/users/makeBuildingAdmin")
-              .set('x-auth-token', token)
-              .send({
-                  userId: newUserId,
-                  buildingId: buildingId
-              });
+                .patch("/api/users/makeBuildingAdmin")
+                .set('x-auth-token', token)
+                .send({
+                    userId: newUserId,
+                    buildingId: buildingId
+                });
         };
 
         it("Should return 403 if user was not admin on building", async () => {
             user.adminOnBuildings = [];
             await user.save();
 
-            await expect(exec()).to.be.rejectedWith("Forbidden");
+            const res = await exec();
+            expect(res.statusCode).to.equal(403);
         });
 
         it("Should return 401 if no token provided", async () => {
             token = null;
-            await expect(exec()).to.be.rejectedWith("Unauthorized");
+            const res = await exec();
+            expect(res.statusCode).to.equal(401);
         });
 
         it("Should return updated user with adminOnBuildings updated", async () => {
@@ -213,4 +253,7 @@ describe('/api/users', () => {
         });
 
     });
+
+
+
 });

@@ -9,7 +9,7 @@ const answerSchema = new mongoose.Schema({
     trim: true,
     required: true
   },
-  timesAonswered: Number
+  timesAnswered: Number
 });
 
 const Answer = mongoose.model('Answer', answerSchema);

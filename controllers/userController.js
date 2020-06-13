@@ -8,6 +8,11 @@ const getUsers = async (req, res) => {
     res.send(users);
 };
 
+const getUsersLocation = async (req, res) => {
+    const users = await User.find(null, "_id currentRoom roomLastUpdated");
+    res.send(users);
+};
+
 const makeUserAdmin = async (req, res) => {
 
     const {userId, buildingId} = req.body;
@@ -65,3 +70,4 @@ const createUser = async (req, res) => {
 module.exports.getUsers = getUsers;
 module.exports.makeUserAdmin = makeUserAdmin;
 module.exports.createUser = createUser;
+module.exports.getUsersLocation = getUsersLocation;

@@ -18,7 +18,7 @@ describe('/api/beacons', () => {
 
     before(async () => {
         server = app.listen(config.get('port'));
-        await mongoose.connect(config.get('db'), {useNewUrlParser: true});
+        await mongoose.connect(config.get('db'), {useNewUrlParser: true, useUnifiedTopology: true});
     });
     after(async () => {
         await server.close();
@@ -55,9 +55,9 @@ describe('/api/beacons', () => {
 
         const exec = () => {
             return request(server)
-              .post('/api/beacons')
-              .set("x-auth-token", token)
-              .send({uuid, buildingId, name, randomParam});
+                .post('/api/beacons')
+                .set("x-auth-token", token)
+                .send({uuid, buildingId, name, randomParam});
         };
 
         beforeEach(async () => {
@@ -71,8 +71,8 @@ describe('/api/beacons', () => {
         // 400 if random parameter in body is passed
         it('400 if random parameter in body is parsed', async () => {
             randomParam = "hej";
-            await expect(exec()).to.be.rejectedWith("Bad Request");
-
+            const res = await exec();
+            expect(res.statusCode).to.equal(400);
         });
 
         it("Should accept uuid value", async () => {
@@ -85,13 +85,20 @@ describe('/api/beacons', () => {
             user.role = 0;
             await user.save();
             token = user.generateAuthToken();
-            await expect(exec()).to.be.rejectedWith("Forbidden");
+            const res = await exec();
+            expect(res.statusCode).to.equal(403);
         });
 
         it("Should post new beacon with right parameters", async () => {
             const res = await exec();
             expect(res.status).to.equal(200);
         });
+
+        it("Should not be allowed to post 2 beacons with same uuid", async () => {
+            await exec();
+            const res = await exec();
+            expect(res.statusCode).to.equal(400);
+        })
     });
 
     describe("GET /", () => {
@@ -104,8 +111,8 @@ describe('/api/beacons', () => {
 
         const exec = () => {
             return request(server)
-              .get('/api/beacons/' + query)
-              .set("x-auth-token", token);
+                .get('/api/beacons/' + query)
+                .set("x-auth-token", token);
         };
 
         beforeEach(async () => {
@@ -144,8 +151,8 @@ describe('/api/beacons', () => {
 
         const exec = () => {
             return request(server)
-              .delete('/api/beacons/' + id)
-              .set("x-auth-token", token);
+                .delete('/api/beacons/' + id)
+                .set("x-auth-token", token);
         };
 
         beforeEach(async () => {
@@ -165,18 +172,22 @@ describe('/api/beacons', () => {
         it("Should return 403 if role not sufficient", async () => {
             user.role = 0;
             await user.save();
-            await expect(exec()).to.be.rejectedWith("Forbidden");
+            const res = await exec();
+expect(res.statusCode).to.equal(403);
         });
 
         it("Should return 403 if not admin on building with beacon", async () => {
             user.adminOnBuildings = [];
             await user.save();
-            await expect(exec()).to.be.rejectedWith("Forbidden");
+            const res = await exec();
+expect(res.statusCode).to.equal(403);
         });
 
         it("Should return 404 if beacon not found", async () => {
             id = mongoose.Types.ObjectId();
-            await expect(exec()).to.be.rejectedWith("Not Found");
+
+            const res = await exec();
+        expect(res.statusCode).to.equal(404);
         });
 
         it("Should succesfully delete beacon", async () => {

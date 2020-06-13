@@ -21,7 +21,7 @@ describe('/api/rooms', () => {
 
     before(async () => {
         server = app.listen(config.get('port'));
-        await mongoose.connect(config.get('db'), {useNewUrlParser: true});
+        await mongoose.connect(config.get('db'), {useNewUrlParser: true, useUnifiedTopology: true});
     });
     after(async () => {
         await server.close();
@@ -50,9 +50,9 @@ describe('/api/rooms', () => {
 
         const exec = () => {
             return request(server)
-              .post('/api/rooms')
-              .set("x-auth-token", token)
-              .send({buildingId: building._id, name});
+                .post('/api/rooms')
+                .set("x-auth-token", token)
+                .send({buildingId: building._id, name});
         };
 
         beforeEach(async () => {
@@ -67,14 +67,16 @@ describe('/api/rooms', () => {
 
         it("should return 401 if no token provided", async () => {
             token = null;
-            await expect(exec()).to.be.rejectedWith("Unauthorized");
+            const res = await exec();
+            expect(res.statusCode).to.equal(401);
         });
 
 
         it("Should return 403 if user not authorized with login role >= 1", async () => {
             user.role = 0;
             await user.save();
-            await expect(exec()).to.be.rejectedWith("Forbidden");
+            const res = await exec();
+            expect(res.statusCode).to.equal(403);
         });
 
         it('should return room with proper building id', async () => {
@@ -102,13 +104,8 @@ describe('/api/rooms', () => {
 
         it('should return 400 if name not set', async () => {
             name = null;
-
-            try {
-                await exec();
-            } catch (e) {
-                return expect(e.status).to.equal(400);
-            }
-            throw new Error('should have thrown error');
+            const res = await exec();
+            expect(res.statusCode).to.equal(400);
         });
 
         it("Should return 403 if user not admin on building", async () => {
@@ -140,8 +137,8 @@ describe('/api/rooms', () => {
 
         const exec = () => {
             return request(server)
-              .get('/api/rooms/fromBuilding/' + buildingId)
-              .set('x-auth-token', token);
+                .get('/api/rooms/fromBuilding/' + buildingId)
+                .set('x-auth-token', token);
         };
 
         it("Should only return 1 room", async () => {
@@ -149,10 +146,12 @@ describe('/api/rooms', () => {
             expect(res.body.length).to.equal(1);
         });
 
+
         it("Should return 403 if user was not admin on building", async () => {
             user.adminOnBuildings = [];
             await user.save();
-            await expect(exec()).to.be.rejectedWith("Forbidden");
+            const res = await exec();
+            expect(res.statusCode).to.equal(403);
         });
     });
 
@@ -176,15 +175,16 @@ describe('/api/rooms', () => {
         });
         const exec = () => {
             return request(server)
-              .get('/api/rooms/' + query)
-              .set('x-auth-token', token);
+                .get('/api/rooms/' + query)
+                .set('x-auth-token', token);
         };
 
         it("Should return 403 if no query parsed and user wasn't admin", async () => {
             user.role = 1;
             query = "";
             await user.save();
-            await expect(exec()).to.be.rejectedWith("Forbidden");
+            const res = await exec();
+            expect(res.statusCode).to.equal(403);
         });
 
         it("Should only return rooms that user has given feedback on, when query parsed", async () => {
@@ -223,13 +223,15 @@ describe('/api/rooms', () => {
 
         it("Should return 404 if user was not found", async () => {
             query = "?admin=" + mongoose.Types.ObjectId();
-            await expect(exec()).to.be.rejectedWith("Not Found");
+            const res = await exec();
+            expect(res.statusCode).to.equal(404);
         });
         it("Should return 403 if user tried to get rooms another user is admin on but was not admin himself", async () => {
             user.role = 1;
             await user.save();
             query = "?admin=" + mongoose.Types.ObjectId();
-            await expect(exec()).to.be.rejectedWith("Forbidden");
+            const res = await exec();
+            expect(res.statusCode).to.equal(403);
         });
 
         it("Should only return rooms where user is admin if query admin=me parsed", async () => {
@@ -262,6 +264,96 @@ describe('/api/rooms', () => {
 
     });
 
+    describe("GET rooms in building /fromBuilding/:id/userCount", () => {
+        let token;
+        let buildingId;
+        let room;
+
+        const exec = () => {
+            return request(server)
+                .get('/api/rooms/fromBuilding/' + buildingId + "/userCount")
+                .set('x-auth-token', token);
+        };
+
+        beforeEach(async () => {
+            const building = new Building({name: '324'});
+            buildingId = building.id;
+            room = new Room({name: "222", location: "123", building: building._id});
+            let room2 = new Room({name: "221", location: "456", building: mongoose.Types.ObjectId()});
+            user.adminOnBuildings = [buildingId];
+            user.currentRoom = room.id;
+            user.roomLastUpdated = new Date();
+            await user.save();
+
+            token = user.generateAuthToken();
+            await building.save();
+            await room.save();
+            await room2.save();
+        });
+
+        it("Should only display rooms from building which user is admin on", async () => {
+            const res = await exec();
+            expect(res.body.length).to.equal(1);
+        })
+
+        it("Should not allow userCount from buildings which user is not admin on", async () => {
+            buildingId = mongoose.Types.ObjectId();
+            const res = await exec();
+            expect(res.statusCode).to.equal(403);
+
+        });
+
+        it("Should return only roomId, room name and user count", async () => {
+            const res = await exec();
+            const newRoom = res.body[0];
+
+            expect(Object.keys(newRoom).length).to.equal(3);
+            expect(newRoom._id).to.equal(room._id.toString());
+        });
+
+        it("Should update userCount if more users have set their currentRoom", async () => {
+            const user2 = new User({currentRoom: room.id, roomLastUpdated: new Date()});
+            const user3 = new User({currentRoom: room.id, roomLastUpdated: new Date()});
+
+            await user2.save();
+            await user3.save();
+
+            const res = await exec();
+            const newRoom = res.body[0];
+            expect(newRoom.userCount).to.equal(3);
+        });
+
+        it("Should only count users who have updated their room within the last half hour", async () => {
+            const oldDate = new Date();
+            oldDate.setMinutes(oldDate.getMinutes() - 30);
+            const user2 = new User({currentRoom: room.id, roomLastUpdated: oldDate});
+            await user2.save();
+            const res = await exec();
+            const newRoom = res.body[0];
+            expect(newRoom.userCount).to.equal(1);
+        });
+
+        it("Should count users who have updated their room within the last half hour", async () => {
+            const oldDate = new Date();
+            oldDate.setMinutes(oldDate.getMinutes() - 29);
+            const user2 = new User({currentRoom: room.id, roomLastUpdated: oldDate});
+            await user2.save();
+            const res = await exec();
+            const newRoom = res.body[0];
+            expect(newRoom.userCount).to.equal(2);
+        });
+
+        it("Should only allow authorized user", async () => {
+            user.role = 0;
+            token = user.generateAuthToken();
+            await user.save();
+            const res = await exec();
+            expect(res.statusCode).to.equal(403);
+
+        })
+
+    });
+
     describe("DELETE /:id", () => {
         let roomId;
         let token;
@@ -280,8 +372,8 @@ describe('/api/rooms', () => {
         });
         const exec = () => {
             return request(server)
-              .delete("/api/rooms/" + roomId)
-              .set("x-auth-token", token)
+                .delete("/api/rooms/" + roomId)
+                .set("x-auth-token", token)
         };
 
         it("Should return array of length 0 when room deleted", async () => {
@@ -294,7 +386,8 @@ describe('/api/rooms', () => {
             user.adminOnBuildings = [];
             await user.save();
             token = user.generateAuthToken();
-            await expect(exec()).to.be.rejectedWith("Forbidden");
+            const res = await exec();
+            expect(res.statusCode).to.equal(403);
         });
 
         it("Should delete questions that have only reference to deleted room", async () => {

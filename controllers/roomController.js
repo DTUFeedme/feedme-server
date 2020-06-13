@@ -67,7 +67,7 @@ const deleteRoom = async (req, res) => {
 const getRooms = async (req, res) => {
     const {admin, feedback} = req.query;
 
-    // TODO: Replcae with authentication
+
     let rooms;
     if (admin) {
         if (admin === "me") {
@@ -95,14 +95,43 @@ const getRooms = async (req, res) => {
         }
 
     } else {
-        if (req.user.role < 0) // TODO: Should be 2, not 1
+        if (req.user.role < 2)
             return res.status(403).send("User should have role admin to get all rooms");
         rooms = await Room.find();
     }
     res.send(rooms);
 };
 
+const getUserCountFromBuilding = async (req, res) => {
+    const buildingId = req.params.id;
+
+    if (!req.user.adminOnBuildings.find(elem => elem.toString() === buildingId))
+        return res.status(403).send("User was not admin on building with id " + buildingId);
+
+    const fetchedRooms = await Room.find({building: buildingId}, "_id name userCount");
+    const rooms = [];
+
+    for (let i = 0; i < fetchedRooms.length; i++) {
+        const {_id, name} = fetchedRooms[i];
+        const oldDate = new Date();
+        oldDate.setMinutes(oldDate.getMinutes() - 30);
+        const userCount = await User.countDocuments({
+            currentRoom: _id, roomLastUpdated: {
+                $gt: oldDate
+            }
+        });
+
+        rooms.push({
+            _id,
+            name,
+            userCount
+        });
+    }
+    res.send(rooms);
+}
+
 module.exports.deleteRoom = deleteRoom;
 module.exports.getRooms = getRooms;
 module.exports.createRoom = createRoom;
 module.exports.getRoomsFromBuilding = getRoomsFromBuilding;
+module.exports.getUserCountFromBuilding = getUserCountFromBuilding;

@@ -17,7 +17,7 @@ describe('Should throw error', () => {
 
     before(async () => {
         server = app.listen(config.get('port'));
-        await mongoose.connect(config.get('db'), {useNewUrlParser: true});
+        await mongoose.connect(config.get('db'), {useNewUrlParser: true, useUnifiedTopology: true});
     });
     after(async () => {
         await server.close();
@@ -39,7 +39,4 @@ describe('Should throw error', () => {
           .send({email: "hej", password: "yo"});
     };
 
-    it("Should throw", async () => {
-        await expect(exec()).to.be.rejectedWith("Forbidden");
-    });
 });
