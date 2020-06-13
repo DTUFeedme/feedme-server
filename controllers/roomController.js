@@ -102,6 +102,7 @@ const getRooms = async (req, res) => {
     res.send(rooms);
 };
 
+
 const getUserCountFromBuilding = async (req, res) => {
     const buildingId = req.params.id;
 
