@@ -1,11 +1,11 @@
 module.exports = {
   apps : [{
+	  name: "feedme-prod",
     script: 'index.js',
     watch: '.',
-    ignore_watch : ["node_modules", "error.log", "combined.log"],
-  }, {
-    script: './service-worker/',
-    watch: ['./service-worker']
+	  instance_var: 'feedme-prod',
+    ignore_watch : [".git", "node_modules", "error.log", "combined.log"],
+	log_file: 'error.log',
   }],
 
   deploy : {
