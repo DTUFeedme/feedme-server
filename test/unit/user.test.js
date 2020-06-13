@@ -40,7 +40,7 @@ describe("User", () => {
     describe("Basic user posted from client", () => {
         let user;
 
-        beforeEach( () => {
+        beforeEach(() => {
             user = {};
         });
 
@@ -75,7 +75,7 @@ describe("User", () => {
         let password;
         let email;
 
-        beforeEach( () => {
+        beforeEach(() => {
             password = "qweQWE123";
             email = "s@s";
             user = {

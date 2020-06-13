@@ -9,30 +9,14 @@ const createSignalMap = async (req, res) => {
 
     if (error) return res.status(400).send(error.details[0].message);
 
-    const {beacons, roomId} = req.body;
+    const {beacons, buildingId, roomId} = req.body;
     let estimatedRoomId;
 
-    /*const buildingIds = new Set();
     for (let i = 0; i < beacons.length; i++) {
-        const beacon = await Beacon.findOne({uuid: beacons[i].uuid});
-        if (!beacon) return res.status(400).send(`Beacon with uuid ${beacons[i].uuid} did not exist in database`);
-        beacons[i]._id = beacon.id;
-        buildingIds.add(beacon.building);
-    }*/
-    const clientBeacons = [];
-    const serverBeacons = await Beacon.find({uuid: beacons.map(b => b.uuid)});
-    if (!serverBeacons || serverBeacons.length <= 0)
-        return res.status(400).send("Was unable to find any matching beacons");
-    const rooms = await Room.find({building: {$in: serverBeacons.map(b => b.building)}});
-
-    beacons.forEach(b => {
-        const sbs = serverBeacons.filter(sb => sb.uuid === b.uuid);
-        if (sbs.length > 0){
-            clientBeacons.push({_id: sbs[0].id, signals: b.signals})
-        }
-    });
-    if (clientBeacons.length <= 0)
-        return res.status(400).send("Unable to find any beacons on server with requested ids ");
+        const beacon = await Beacon.findById(beacons[i].beaconId);
+        if (!beacon) return res.status(400).send(`Beacon with id ${beacons[i].beaconId} did not exist in database`);
+        beacons[i]._id = beacons[i].beaconId;
+    }
 
     let room;
     if (!roomId) {

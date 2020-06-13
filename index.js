@@ -43,7 +43,6 @@ logger.streamError = {
         logger.error(message);
     }
 };
-
 logger.streamInfo = {
     write: function (message) {
         logger.info(message);
