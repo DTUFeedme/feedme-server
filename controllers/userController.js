@@ -24,12 +24,12 @@ const makeUserAdmin = async (req, res) => {
 
     if (!req.user.adminOnBuildings.find(elem => elem.toString() === buildingId))
         return res.status(403).send("User was not admin on building and can therefore not promote other users to admins");
-    const newUser = await User.findById(userId);
+    let newUser = await User.findById(userId);
 
     if (newUser.adminOnBuildings.includes(buildingId))
         return res.status(400).send("User was already admin on this buildilng");
 
-    await User.update({ _id: userId }, { $push: { adminOnBuildings: buildingId } });
+    newUser = await User.findOneAndUpdate({ _id: userId }, { $push: { adminOnBuildings: buildingId } }, {new: true});
 
     res.send(newUser);
 };
