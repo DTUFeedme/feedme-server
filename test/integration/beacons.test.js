@@ -99,6 +99,14 @@ describe('/api/beacons', () => {
             const res = await exec();
             expect(res.statusCode).to.equal(400);
         })
+
+        it("Should not be allowed to add beacon with name already existing", async () => {
+            await exec();
+            // Different uuid
+            uuid = "vsk1vs12-vsk1-sk12-vk12-vk12vk12vk13";
+            const res = await exec();
+            expect(res.statusCode).to.equal(400);
+        });
     });
 
     describe("GET /", () => {
