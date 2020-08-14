@@ -2,6 +2,7 @@ const {User} = require('../../models/user');
 const {Building} = require('../../models/building');
 const {Room} = require('../../models/room');
 const {Feedback} = require('../../models/feedback');
+const {Beacon} = require("../../models/beacon");
 const request = require('supertest');
 const assert = require('assert');
 const mongoose = require('mongoose');
@@ -34,6 +35,7 @@ describe('/api/buildings', () => {
         await User.deleteMany();
         await Building.deleteMany();
         await Room.deleteMany();
+        await Beacon.deleteMany();
     });
 
     describe('POST /', () => {
@@ -195,6 +197,21 @@ describe('/api/buildings', () => {
             await user.save();
             const res = await exec();
             expect(res.statusCode).to.equal(403);
+        });
+
+        it("Should delete beacons belonging to building", async () => {
+            const beacon = await new Beacon({
+                name: "324",
+                building: buildingId,
+                uuid: "f7826da6-4fa2-4e98-8024-bc5b71e0893b"
+            }).save();
+
+            let beacons = await Beacon.countDocuments();
+            expect(beacons).to.equal(1);
+
+            await exec();
+            beacons = await Beacon.countDocuments();
+            expect(beacons).to.equal(0);
         });
     });
 
