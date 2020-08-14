@@ -80,7 +80,7 @@ describe('/api/users', () => {
     describe("GET /location", () => {
         const exec = () => {
             return request(server)
-                .get("/api/users/location" )
+                .get("/api/users/location")
                 .set('x-auth-token', token);
         };
 
@@ -252,8 +252,14 @@ describe('/api/users', () => {
             expect(res.body.adminOnBuildings[0]).to.equal(user.adminOnBuildings[0].toString());
         });
 
-    });
+        it("Should not be allowed to make user admin who is already an admin", async () => {
+            await exec();
 
+            const res = await exec();
+            expect(res.statusCode).to.equal(400);
+        });
+
+    });
 
 
 });
