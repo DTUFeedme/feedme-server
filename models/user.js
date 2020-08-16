@@ -26,7 +26,7 @@ const userSchema = new mongoose.Schema({
     refreshToken: {
         type: String,
         required: true,
-        // validate: /^[a-zA-Z\d]{8}-[a-zA-Z\d]{4}-[a-zA-Z\d]{4}-[a-zA-Z\d]{4}-[a-zA-Z\d]{12}$/
+        validate: /^[a-zA-Z\d]{8}-[a-zA-Z\d]{4}-[a-zA-Z\d]{4}-[a-zA-Z\d]{4}-[a-zA-Z\d]{12}$/
     },
     currentRoom: {
         type: String,
