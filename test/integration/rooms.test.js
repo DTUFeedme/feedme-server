@@ -4,6 +4,7 @@ const {Room} = require('../../models/room');
 const {Question} = require('../../models/question');
 const {Feedback} = require('../../models/feedback');
 const {SignalMap} = require('../../models/signalMap');
+const { v4: uuidv4 } = require('uuid');
 const logger = require('../../startup/logger');
 const config = require('config');
 const app = require('../..');
@@ -29,7 +30,7 @@ describe('/api/rooms', () => {
     });
 
     beforeEach(async () => {
-        user = new User({role: 1});
+        user = new User({role: 1, refreshToken: uuidv4()});
         await user.save();
     });
     afterEach(async () => {
@@ -210,7 +211,8 @@ describe('/api/rooms', () => {
             const newUser = await new User({
                 email: "w@w",
                 password: "yo",
-                adminOnBuildings: [newBuildingId]
+                adminOnBuildings: [newBuildingId],
+                refreshToken: uuidv4()
             }).save();
 
             query = "?admin=" + newUser.id;
@@ -312,8 +314,8 @@ describe('/api/rooms', () => {
         });
 
         it("Should update userCount if more users have set their currentRoom", async () => {
-            const user2 = new User({currentRoom: room.id, roomLastUpdated: new Date()});
-            const user3 = new User({currentRoom: room.id, roomLastUpdated: new Date()});
+            const user2 = new User({currentRoom: room.id, roomLastUpdated: new Date(), refreshToken: uuidv4()});
+            const user3 = new User({currentRoom: room.id, roomLastUpdated: new Date(), refreshToken: uuidv4()});
 
             await user2.save();
             await user3.save();
@@ -326,7 +328,7 @@ describe('/api/rooms', () => {
         it("Should only count users who have updated their room within the last half hour", async () => {
             const oldDate = new Date();
             oldDate.setMinutes(oldDate.getMinutes() - 30);
-            const user2 = new User({currentRoom: room.id, roomLastUpdated: oldDate});
+            const user2 = new User({currentRoom: room.id, roomLastUpdated: oldDate, refreshToken: uuidv4()});
             await user2.save();
             const res = await exec();
             const newRoom = res.body[0];
@@ -336,7 +338,7 @@ describe('/api/rooms', () => {
         it("Should count users who have updated their room within the last half hour", async () => {
             const oldDate = new Date();
             oldDate.setMinutes(oldDate.getMinutes() - 29);
-            const user2 = new User({currentRoom: room.id, roomLastUpdated: oldDate});
+            const user2 = new User({currentRoom: room.id, roomLastUpdated: oldDate, refreshToken: uuidv4()});
             await user2.save();
             const res = await exec();
             const newRoom = res.body[0];

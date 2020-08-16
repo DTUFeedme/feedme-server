@@ -3,6 +3,8 @@ const {validateAuthorized} = require("../models/user");
 const bcrypt = require("bcryptjs");
 const {User} = require("../models/user");
 const router = express.Router();
+const {authExpired} = require("../middleware/auth");
+const { v4: uuidv4 , validate} = require('uuid');
 
 const FAIL_AUTH_TEXT = "Invalid email or password";
 
@@ -19,8 +21,29 @@ router.post("/", async (req, res) => {
     if (!validPassword) return res.status(400).send(FAIL_AUTH_TEXT);
 
     const token = user.generateAuthToken();
+    const refreshToken = uuidv4();
 
-    res.header("x-auth-token", token).send("Login successful");
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    res.header("x-auth-token", token).send({refreshToken});
+});
+
+router.post("/refresh", authExpired, async (req, res) => {
+    const token = req.header("x-auth-token");
+    const {refreshToken} = req.body;
+    const user = req.user;
+
+    if (!refreshToken) return res.status(400).send("No refreshToken provided");
+    if (!validate(refreshToken)) return res.status(400).send(`Refresh token ${refreshToken} did not have a valid uuid format`);
+    if (user.refreshToken !== refreshToken) return res.status(401).send(`Refresh token ${refreshToken} did not match user`);
+
+    const newRefreshToken = uuidv4();
+    user.refreshToken = newRefreshToken;
+    await user.save();
+    const newToken = user.generateAuthToken();
+
+    res.header("x-auth-token", newToken).send({refreshToken: newRefreshToken});
 });
 
 module.exports = router;

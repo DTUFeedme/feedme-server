@@ -16,9 +16,13 @@ router.post('/', [auth, authorized], async (req, res) => {
 
     let {buildingId, name, uuid} = req.body;
 
-    const existingBeacon = await Beacon.findOne({uuid});
-
+    // Check if uuid already exists
+    let existingBeacon = await Beacon.findOne({uuid});
     if (existingBeacon) return res.status(400).send(`Unique UUID is required. Beacon with uuid ${uuid} already exists`);
+
+    // Check if name already exists
+    existingBeacon = await Beacon.findOne({name});
+    if (existingBeacon) return res.status(400).send(`Unique UUID is required. Beacon with name ${name} already exists`);
 
     if (req.user.role < 1) return res.status(403).send("Forbidden. User should be authorized");
 

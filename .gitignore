@@ -5,6 +5,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+
 .idea/
 
 # Runtime data
@@ -80,3 +81,6 @@ typings/
 
 # DynamoDB Local files
 .dynamodb/
+
+Test Results - test.html
+Test Results - test.xml

@@ -2,7 +2,6 @@ const mongoose = require('mongoose');
 const Joi = require('joi');
 const jwt = require("jsonwebtoken");
 
-
 const userSchema = new mongoose.Schema({
     email: {
         type: String,
@@ -24,6 +23,11 @@ const userSchema = new mongoose.Schema({
         required: true,
         default: 0
     },
+    refreshToken: {
+        type: String,
+        required: true,
+        // validate: /^[a-zA-Z\d]{8}-[a-zA-Z\d]{4}-[a-zA-Z\d]{4}-[a-zA-Z\d]{4}-[a-zA-Z\d]{12}$/
+    },
     currentRoom: {
         type: String,
         minLength: 3,
@@ -34,8 +38,22 @@ const userSchema = new mongoose.Schema({
     }
 },);
 
-userSchema.methods.generateAuthToken = function () {
-    return jwt.sign({_id: this._id, role: this.role}, process.env.jwtPrivateKey);
+userSchema.methods.generateAuthToken = function (timeNow) {
+    const expInSec = 60 * 5; // Five minutes
+
+    if (timeNow)
+        return jwt.sign({
+            _id: this._id,
+            role: this.role,
+            exp: timeNow + expInSec,
+            iat: timeNow
+        }, process.env.jwtPrivateKey);
+
+    return jwt.sign({
+        _id: this._id,
+        role: this.role,
+        exp: Math.floor(Date.now() / 1000) + expInSec,
+    }, process.env.jwtPrivateKey);
 };
 
 const UserRole = Object.freeze({"unauthorized": 0, "authorized": 1, "admin": 2,});

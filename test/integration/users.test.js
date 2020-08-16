@@ -11,10 +11,12 @@ const chaiAsPromised = require("chai-as-promised");
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 chai.should();
+const { v4: uuidv4 , validate} = require('uuid');
 
 describe('/api/users', () => {
     let user;
     let token;
+    let refreshToken
 
     before(async () => {
         server = app.listen(config.get('port'));
@@ -26,7 +28,8 @@ describe('/api/users', () => {
     });
 
     beforeEach(async () => {
-        user = new User();
+        refreshToken = uuidv4();
+        user = new User({refreshToken});
         token = user.generateAuthToken();
         await user.save();
     });
@@ -46,7 +49,8 @@ describe('/api/users', () => {
             user = new User({
                 email: "hej",
                 password: "yo",
-                role: 2
+                role: 2,
+                refreshToken: uuidv4()
             });
             token = user.generateAuthToken();
             await user.save();
@@ -80,7 +84,7 @@ describe('/api/users', () => {
     describe("GET /location", () => {
         const exec = () => {
             return request(server)
-                .get("/api/users/location" )
+                .get("/api/users/location")
                 .set('x-auth-token', token);
         };
 
@@ -88,7 +92,8 @@ describe('/api/users', () => {
             user = new User({
                 currentRoom: "324",
                 roomLastUpdated: new Date(),
-                role: 2
+                role: 2,
+                refreshToken: uuidv4()
             });
             token = user.generateAuthToken();
             await user.save();
@@ -142,17 +147,22 @@ describe('/api/users', () => {
                 const decoded = jwt.decode(res.header["x-auth-token"]);
                 assert.strictEqual(mongoose.Types.ObjectId.isValid(decoded._id), true);
             });
+
+            it("Should add refreshtoken upon login", async () => {
+                await exec();
+                const updatedUser = await User.findById(user.id);
+                expect(updatedUser.refreshToken).to.be.ok;
+            });
+
+            it("Should return valid refreshtoken upon login", async () => {
+                const res = await exec();
+                expect(validate(res.body.refreshToken)).to.be.ok;
+            });
         });
 
         describe("Authorized user", () => {
             let email;
             let password;
-
-            const exec = () => {
-                return request(server)
-                    .post('/api/users')
-                    .send({email, password});
-            };
 
             beforeEach(async () => {
                 email = "user1@gmail.com";
@@ -163,6 +173,11 @@ describe('/api/users', () => {
                 await User.deleteMany();
             });
 
+            const exec = () => {
+                return request(server)
+                    .post('/api/users')
+                    .send({email, password});
+            };
 
             it("Should create user with authorized role if valid email and password provided", async () => {
                 try {
@@ -194,6 +209,18 @@ describe('/api/users', () => {
                 expect(mongoose.Types.ObjectId.isValid(decodedToken._id)).to.be.true;
             });
 
+            it("Should add a refresh token to user upon login", async () => {
+                await exec();
+
+                const updatedUser = await User.findById(user.id);
+                expect(updatedUser.refreshToken).to.be.ok;
+            });
+
+            it("Should return valid refresh token upon login", async () => {
+                const res = await exec();
+                expect(validate(res.body.refreshToken)).to.be.ok;
+            });
+
         });
     });
 
@@ -208,7 +235,8 @@ describe('/api/users', () => {
                 email: "hej",
                 password: "yo",
                 adminOnBuildings: [buildingId],
-                role: 1
+                role: 1,
+                refreshToken: uuidv4()
             }).save();
 
 
@@ -216,7 +244,8 @@ describe('/api/users', () => {
                 email: "hej",
                 password: "yo",
                 adminOnBuildings: [],
-                role: 1
+                role: 1,
+                refreshToken: uuidv4()
             }).save();
             newUserId = newUser.id;
 
@@ -252,8 +281,14 @@ describe('/api/users', () => {
             expect(res.body.adminOnBuildings[0]).to.equal(user.adminOnBuildings[0].toString());
         });
 
-    });
+        it("Should not be allowed to make user admin who is already an admin", async () => {
+            await exec();
 
+            const res = await exec();
+            expect(res.statusCode).to.equal(400);
+        });
+
+    });
 
 
 });

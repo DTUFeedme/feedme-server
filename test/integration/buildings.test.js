@@ -2,6 +2,7 @@ const {User} = require('../../models/user');
 const {Building} = require('../../models/building');
 const {Room} = require('../../models/room');
 const {Feedback} = require('../../models/feedback');
+const {Beacon} = require("../../models/beacon");
 const request = require('supertest');
 const assert = require('assert');
 const mongoose = require('mongoose');
@@ -11,6 +12,7 @@ const chai = require("chai");
 const chaiAsPromised = require("chai-as-promised");
 const {Question} = require("../../models/question");
 chai.use(chaiAsPromised);
+const { v4: uuidv4 } = require('uuid');
 const expect = require("chai").expect;
 let server;
 
@@ -27,13 +29,14 @@ describe('/api/buildings', () => {
     });
 
     beforeEach(async () => {
-        user = new User();
+        user = new User({refreshToken: uuidv4()});
         await user.save();
     });
     afterEach(async () => {
         await User.deleteMany();
         await Building.deleteMany();
         await Room.deleteMany();
+        await Beacon.deleteMany();
     });
 
     describe('POST /', () => {
@@ -195,6 +198,21 @@ describe('/api/buildings', () => {
             await user.save();
             const res = await exec();
             expect(res.statusCode).to.equal(403);
+        });
+
+        it("Should delete beacons belonging to building", async () => {
+            const beacon = await new Beacon({
+                name: "324",
+                building: buildingId,
+                uuid: "f7826da6-4fa2-4e98-8024-bc5b71e0893b"
+            }).save();
+
+            let beacons = await Beacon.countDocuments();
+            expect(beacons).to.equal(1);
+
+            await exec();
+            beacons = await Beacon.countDocuments();
+            expect(beacons).to.equal(0);
         });
     });
 
@@ -368,7 +386,8 @@ describe('/api/buildings', () => {
             const newUser = await new User({
                 email: "w@w",
                 password: "qweQWE123",
-                role: 1
+                role: 1,
+                refreshToken: uuidv4()
             }).save();
             await new Feedback({
                 question: mongoose.Types.ObjectId(),
@@ -413,7 +432,8 @@ describe('/api/buildings', () => {
             const newUser = await new User({
                 email: "q@q",
                 password: "qweQWE123",
-                adminOnBuildings: [b1.id, b2.id]
+                adminOnBuildings: [b1.id, b2.id],
+                refreshToken: uuidv4()
             }).save();
 
             query = "?admin=" + newUser.id;

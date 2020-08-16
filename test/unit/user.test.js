@@ -5,14 +5,16 @@ chai.use(require('chai-as-promised'));
 const mongoose = require('mongoose');
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
+const jwt = require("jsonwebtoken");
+const assert = require('assert').strict;
+const { v4: uuidv4 } = require('uuid');
 
 describe("User", () => {
     describe('User in database', () => {
 
-
         let user;
         beforeEach(() => {
-            user = new User({role: 0});
+            user = new User({role: 0, refreshToken: uuidv4()});
         });
 
         it('should be valid with user role', async () => {
@@ -40,7 +42,7 @@ describe("User", () => {
     describe("Basic user posted from client", () => {
         let user;
 
-        beforeEach( () => {
+        beforeEach(() => {
             user = {};
         });
 
@@ -75,7 +77,7 @@ describe("User", () => {
         let password;
         let email;
 
-        beforeEach( () => {
+        beforeEach(() => {
             password = "qweQWE123";
             email = "s@s";
             user = {
@@ -103,8 +105,35 @@ describe("User", () => {
         it("Should not accept invalid emails", () => {
             email = "123";
             const {error} = exec();
-            console.log("error", error.message);
             expect(error).to.be.ok;
+        });
+
+        it("Should have expired", () => {
+
+            const privateKey = "privateKey"
+            const fakeTime = Math.floor((Date.now() / 1000) - 60 * 60); // One hour ago
+            process.env.jwtPrivateKey = privateKey;
+
+            const user = new User();
+            let token = user.generateAuthToken(fakeTime);
+
+            console.log(token);
+            expect(() => {
+                const decoded = jwt.verify(token, privateKey);
+            }).to.throw(Error);
+        });
+        it("Should be ok if no more than 5 minutes has passed", () => {
+
+            const privateKey = "privateKey"
+            const fakeTime = Math.floor((Date.now() / 1000) - 60 * 5 + 1); // 4 minutes and 59 seconds ago
+            process.env.jwtPrivateKey = privateKey;
+
+            const user = new User();
+            let token = user.generateAuthToken(fakeTime);
+            console.log(token);
+
+            const decoded = jwt.verify(token, privateKey);
+            expect(decoded).to.be.ok;
         });
     });
 

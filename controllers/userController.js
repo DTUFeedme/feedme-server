@@ -2,6 +2,8 @@ const _ = require('lodash');
 const bcrypt = require("bcryptjs");
 const {User, validate, validateAuthorized} = require('../models/user');
 const StatusError = require("../errors/statusError");
+const { v4: uuidv4 } = require('uuid');
+
 
 const getUsers = async (req, res) => {
     const users = await User.find(null, "_id email role adminOnBuilding");
@@ -24,13 +26,18 @@ const makeUserAdmin = async (req, res) => {
 
     if (!req.user.adminOnBuildings.find(elem => elem.toString() === buildingId))
         return res.status(403).send("User was not admin on building and can therefore not promote other users to admins");
-    const newUser = await User.findById(userId);
-    newUser.adminOnBuildings.push(buildingId);
+    let newUser = await User.findById(userId);
+
+    if (newUser.adminOnBuildings.includes(buildingId))
+        return res.status(400).send("User was already admin on this buildilng");
+
+    newUser = await User.findOneAndUpdate({ _id: userId }, { $push: { adminOnBuildings: buildingId } }, {new: true});
+
     res.send(newUser);
 };
 
 const createUser = async (req, res) => {
-    
+
     let user;
 
     if (req.body.email) {
@@ -59,10 +66,11 @@ const createUser = async (req, res) => {
         user = new User();
     }
 
+    user.refreshToken = uuidv4();
     await user.save();
     const token = user.generateAuthToken();
 
-    res.header('x-auth-token', token).send(_.pick(user, ["_id", "email"]));
+    res.header('x-auth-token', token).send(_.pick(user, ["_id", "email", "refreshToken"]));
 };
 
 

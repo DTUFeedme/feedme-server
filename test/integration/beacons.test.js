@@ -10,6 +10,7 @@ const app = require('../..');
 let server;
 const config = require('config');
 const mongoose = require('mongoose');
+const { v4: uuidv4 } = require('uuid');
 
 describe('/api/beacons', () => {
     let user;
@@ -26,7 +27,7 @@ describe('/api/beacons', () => {
     });
 
     beforeEach(async () => {
-        user = new User({role: 1});
+        user = new User({role: 1, refreshToken: uuidv4()});
         /*room = new Room({
             name: "222",
             building: mongoose.Types.ObjectId(),
@@ -99,6 +100,14 @@ describe('/api/beacons', () => {
             const res = await exec();
             expect(res.statusCode).to.equal(400);
         })
+
+        it("Should not be allowed to add beacon with name already existing", async () => {
+            await exec();
+            // Different uuid
+            uuid = "vsk1vs12-vsk1-sk12-vk12-vk12vk12vk13";
+            const res = await exec();
+            expect(res.statusCode).to.equal(400);
+        });
     });
 
     describe("GET /", () => {

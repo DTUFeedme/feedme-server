@@ -5,7 +5,6 @@ const {Beacon} = require("../models/beacon");
 
 const createSignalMap = async (req, res) => {
     const {error} = validate(req.body);
-    const user = req.user;
 
     if (error) return res.status(400).send(error.details[0].message);
 
@@ -45,36 +44,30 @@ const createSignalMap = async (req, res) => {
         if (signalMaps.length <= 0) return res.status(400).send("Unable to find any active signalMaps " +
             "in current building");
 
-/*        for (let i = 0; i < signalMaps.length; i++) {
-            const room = await Room.findById(signalMaps[i].room);
-            if (!room) return res.status(400).send("Room was not defined: " + signalMaps[i].id);
-
-            // TODO:
-            // TODO: Find solution to narrow for building
-            //if (room.building.toString() !== buildingId.toString()) {
-            //    signalMaps.splice(i, 1);
-            //    i--;
-            //}
-        }
-
-        const serverBeacons = await Beacon.find({building: {$in: Array.from(buildingIds)}}); // {building: buildingId}); Should maybe filter?
-        if (!serverBeacons || serverBeacons.length <= 0)
-            return res.status(400).send("Was unable to find any beacons");// ("Was unable to find beacon with building id " + buildingId);
-
-        // const beaconIds = serverBeacons.map(b => b.id);
-        */
+        /*        for (let i = 0; i < signalMaps.length; i++) {
+                    const room = await Room.findById(signalMaps[i].room);
+                    if (!room) return res.status(400).send("Room was not defined: " + signalMaps[i].id);
+                    // TODO:
+                    // TODO: Find solution to narrow for building
+                    //if (room.building.toString() !== buildingId.toString()) {
+                    //    signalMaps.splice(i, 1);
+                    //    i--;
+                    //}
+                }
+                const serverBeacons = await Beacon.find({building: {$in: Array.from(buildingIds)}}); // {building: buildingId}); Should maybe filter?
+                if (!serverBeacons || serverBeacons.length <= 0)
+                    return res.status(400).send("Was unable to find any beacons");// ("Was unable to find beacon with building id " + buildingId);
+                // const beaconIds = serverBeacons.map(b => b.id);
+                */
 
         estimatedRoomId = await estimateNearestNeighbors(clientBeacons, signalMaps, 3, clientBeacons.map(b => b._id));
         room = await Room.findById(estimatedRoomId);
-        user.currentRoom = estimatedRoomId;
-        user.roomLastUpdated = new Date();
-        await user.save();
-    } else if (user.role < 2){
-        if (user.role < 1) return res.status(403).send("User should be authorized to post active signalmaps");
+    } else if (req.user.role < 2){
+        if (req.user.role < 1) return res.status(403).send("User should be authorized to post active signalmaps");
         room = await Room.findById(roomId);
         if (!room) return res.status(400).send(`Room with id ${roomId} was not found`);
 
-        if (!user.adminOnBuildings.find(elem => room.building.toString() === elem.toString()))
+        if (!req.user.adminOnBuildings.find(elem => room.building.toString() === elem.toString()))
             return res.status(403).send("User was not admin on building containing room " + roomId);
 
         /*const signalMap = await SignalMap.findOne({room: roomId});

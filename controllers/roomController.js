@@ -65,13 +65,13 @@ const deleteRoom = async (req, res) => {
 };
 
 const getRooms = async (req, res) => {
-    const {admin, feedback} = req.query;
+    const { admin, feedback } = req.query;
 
 
     let rooms;
     if (admin) {
         if (admin === "me") {
-            rooms = await Room.find({building: {$in: req.user.adminOnBuildings}});
+            rooms = await Room.find({ building: { $in: req.user.adminOnBuildings } });
             console.log('rooms: ', rooms);
         } else {
             if (req.user.role < 2)
@@ -101,6 +101,7 @@ const getRooms = async (req, res) => {
     }
     res.send(rooms);
 };
+
 
 const getUserCountFromBuilding = async (req, res) => {
     const buildingId = req.params.id;
