@@ -14,6 +14,7 @@ const chai = require("chai");
 const chaiAsPromised = require("chai-as-promised");
 chai.use(chaiAsPromised);
 const expect = require('chai').expect;
+const { v4: uuidv4 } = require('uuid');
 
 describe("/api/general/", () => {
     let user;
@@ -29,7 +30,7 @@ describe("/api/general/", () => {
     });
 
     beforeEach(async () => {
-        user = new User({role: 2});
+        user = new User({role: 2, refreshToken: uuidv4()});
         await user.save();
     });
     afterEach(async () => {
@@ -94,7 +95,7 @@ expect(res.statusCode).to.equal(403);
         it("Should not delete admins ", async () => {
             user.role = 2;
             await user.save();
-            await new User({role: 1}).save();
+            await new User({role: 1, refreshToken: uuidv4()}).save();
             await exec();
             const userAmount = await User.countDocuments({});
             expect(userAmount).to.equal(1);

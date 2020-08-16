@@ -15,6 +15,7 @@ const chaiAsPromised = require("chai-as-promised");
 chai.use(chaiAsPromised);
 const expect = require('chai').expect;
 const jwt = require("jsonwebtoken");
+const { v4: uuidv4 } = require('uuid');
 
 describe('/api/feedback', () => {
     let server;
@@ -38,7 +39,7 @@ describe('/api/feedback', () => {
     });
 
     beforeEach(async () => {
-        user = new User();
+        user = new User({refreshToken: uuidv4()});
         await user.save();
     });
     afterEach(async () => {

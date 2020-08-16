@@ -2,6 +2,8 @@ const _ = require('lodash');
 const bcrypt = require("bcryptjs");
 const {User, validate, validateAuthorized} = require('../models/user');
 const StatusError = require("../errors/statusError");
+const { v4: uuidv4 } = require('uuid');
+
 
 const getUsers = async (req, res) => {
     const users = await User.find(null, "_id email role adminOnBuilding");
@@ -35,7 +37,7 @@ const makeUserAdmin = async (req, res) => {
 };
 
 const createUser = async (req, res) => {
-    
+
     let user;
 
     if (req.body.email) {
@@ -64,10 +66,11 @@ const createUser = async (req, res) => {
         user = new User();
     }
 
+    user.refreshToken = uuidv4();
     await user.save();
     const token = user.generateAuthToken();
 
-    res.header('x-auth-token', token).send(_.pick(user, ["_id", "email"]));
+    res.header('x-auth-token', token).send(_.pick(user, ["_id", "email", "refreshToken"]));
 };
 
 

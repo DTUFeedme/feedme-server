@@ -10,6 +10,7 @@ const app = require('../..');
 let server;
 const config = require('config');
 const mongoose = require('mongoose');
+const { v4: uuidv4 } = require('uuid');
 
 describe('/api/beacons', () => {
     let user;
@@ -26,7 +27,7 @@ describe('/api/beacons', () => {
     });
 
     beforeEach(async () => {
-        user = new User({role: 1});
+        user = new User({role: 1, refreshToken: uuidv4()});
         /*room = new Room({
             name: "222",
             building: mongoose.Types.ObjectId(),

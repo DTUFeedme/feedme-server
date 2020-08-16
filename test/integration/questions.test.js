@@ -12,6 +12,7 @@ const chai = require("chai");
 const chaiAsPromised = require("chai-as-promised");
 chai.use(chaiAsPromised);
 const expect = require('chai').expect;
+const { v4: uuidv4 } = require('uuid');
 
 describe('/api/questions', () => {
     let server;
@@ -28,7 +29,7 @@ describe('/api/questions', () => {
     });
 
     beforeEach(async () => {
-        user = new User();
+        user = new User({refreshToken: uuidv4()});
         await user.save();
     });
     afterEach(async () => {
@@ -99,7 +100,7 @@ describe('/api/questions', () => {
         });
 
         it('404 if user was not found', async () => {
-            user = new User();
+            user = new User({refreshToken: uuidv4()});
             token = user.generateAuthToken();
             const res = await exec();
         expect(res.statusCode).to.equal(404);
@@ -305,7 +306,7 @@ expect(res.statusCode).to.equal(400);
 
         it('404 if user was not found', async () => {
 
-            const user2 = new User();
+            const user2 = new User({refreshToken: uuidv4()});
             token = user2.generateAuthToken();
             const res = await exec();
             expect(res.statusCode).to.equal(404);
