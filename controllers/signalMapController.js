@@ -46,14 +46,15 @@ const createSignalMap = async (req, res) => {
             "in current building");
         roomEstimation = await roomTypeEstimation(clientBeacons, signalMaps, 3, clientBeacons.map(b => b._id));
 
-        room = await Room.findById(roomEstimation.type);
+        room = await Room.findById(roomEstimation.type).populate("building");
         certainty = roomEstimation.certainty;
     } else if (req.user.role < 2) {
         if (req.user.role < 1) return res.status(403).send("User should be authorized to post active signalmaps");
-        room = await Room.findById(roomId);
+        room = await Room.findById(roomId).populate("building");
         if (!room) return res.status(400).send(`Room with id ${roomId} was not found`);
 
-        if (!req.user.adminOnBuildings.find(elem => room.building.toString() === elem.toString()))
+        console.log(req.user.adminOnBuildings);
+        if (!req.user.adminOnBuildings.find(elem => room.building._id.toString() === elem.toString()))
             return res.status(403).send("User was not admin on building containing room " + roomId);
     }
 

@@ -180,6 +180,7 @@ describe('/api/signalMaps', () => {
         });
 
         it("Should return new signalmap with one length array of beacons", async () => {
+
             const res = await exec();
             expect(res.body.beacons.length).to.equal(1);
         });
@@ -595,7 +596,7 @@ describe('/api/signalMaps', () => {
             buildingId = undefined;
             roomId = undefined;
             const res = await exec();
-            expect(res.body.room.building).to.equal(building.id);
+            expect(res.body.room.building._id).to.equal(building.id);
         });
 
         it("Should limit search to building if building id provided", async () => {
