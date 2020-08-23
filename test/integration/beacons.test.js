@@ -8,9 +8,10 @@ chai.use(chaiAsPromised);
 const expect = require("chai").expect;
 const app = require('../..');
 let server;
+const assert = require('assert');
 const config = require('config');
 const mongoose = require('mongoose');
-const { v4: uuidv4 } = require('uuid');
+const {v4: uuidv4} = require('uuid');
 
 describe('/api/beacons', () => {
     let user;
@@ -58,7 +59,7 @@ describe('/api/beacons', () => {
             return request(server)
                 .post('/api/beacons')
                 .set("x-auth-token", token)
-                .send({uuid, buildingId, name, randomParam});
+                .send({buildingId, name, randomParam});
         };
 
         beforeEach(async () => {
@@ -107,6 +108,45 @@ describe('/api/beacons', () => {
             uuid = "vsk1vs12-vsk1-sk12-vk12-vk12vk12vk13";
             const res = await exec();
             expect(res.statusCode).to.equal(400);
+        });
+
+        // it("Should not be allowed by post beacon with uuid", async () => {
+        //     const beacon = new Beacon({
+        //         name: "333",
+        //         uuid: "vsk1vs12-vsk1-sk12-vk12-vk12vk12vk13",
+        //         building: buildingId
+        //     });
+        //     const res = await exec();
+        //     expect(res.statusCode).to.equal(400);
+        // });
+
+        it("Should not be allowed by db to post beacon with same name", async () => {
+            const beacon = new Beacon({
+                name: "333",
+                building: buildingId
+            });
+
+            const beacon2 = new Beacon({
+                name: "333",
+                building: buildingId
+            });
+
+            await beacon.save();
+            const res = await Beacon.find({});
+            console.log(res);
+            await expect(beacon2.save()).to.be.rejectedWith(Error);
+
+            // expect(async () => {
+            //     await ;
+            // }).to.throw(new Error());
+            // try {
+            //
+            //     assert.fail();
+            // } catch (e) {
+            //     console.log(e);
+            //     expect(e).to.be.ok;
+            // }
+
         });
     });
 
@@ -182,21 +222,21 @@ describe('/api/beacons', () => {
             user.role = 0;
             await user.save();
             const res = await exec();
-expect(res.statusCode).to.equal(403);
+            expect(res.statusCode).to.equal(403);
         });
 
         it("Should return 403 if not admin on building with beacon", async () => {
             user.adminOnBuildings = [];
             await user.save();
             const res = await exec();
-expect(res.statusCode).to.equal(403);
+            expect(res.statusCode).to.equal(403);
         });
 
         it("Should return 404 if beacon not found", async () => {
             id = mongoose.Types.ObjectId();
 
             const res = await exec();
-        expect(res.statusCode).to.equal(404);
+            expect(res.statusCode).to.equal(404);
         });
 
         it("Should succesfully delete beacon", async () => {

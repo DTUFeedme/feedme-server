@@ -220,8 +220,7 @@ const SignalMap = mongoose.model('SignalMap', signalMapSchema);
 function validateSignalMap(signalMap) {
     const schema = {
         beacons: Joi.array().items(Joi.object({
-            uuid: Joi.string()
-                .regex(/^[a-zA-Z\d]{8}-[a-zA-Z\d]{4}-[a-zA-Z\d]{4}-[a-zA-Z\d]{4}-[a-zA-Z\d]{12}$/)
+            name: Joi.string()
                 .required(),
             signals: Joi.array().items(Joi.number().min(-200).max(0))
         }).required()).required(),
