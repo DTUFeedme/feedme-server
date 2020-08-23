@@ -1,6 +1,6 @@
 module.exports = {
   apps : [{
-	  name: "feedme-dev",
+	  name: "feedme-prod",
     script: 'index.js',
     watch: '.',
 	  ignore_watch : [".git", "node_modules", "error.log", "combined.log"]
