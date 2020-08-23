@@ -14,15 +14,11 @@ router.post('/', [auth, authorized], async (req, res) => {
         return res.status(400).send(e.message);
     }
 
-    let {buildingId, name, uuid} = req.body;
-
-    // Check if uuid already exists
-    let existingBeacon = await Beacon.findOne({uuid});
-    if (existingBeacon) return res.status(400).send(`Unique UUID is required. Beacon with uuid ${uuid} already exists`);
+    let {buildingId, name} = req.body;
 
     // Check if name already exists
-    existingBeacon = await Beacon.findOne({name});
-    if (existingBeacon) return res.status(400).send(`Unique UUID is required. Beacon with name ${name} already exists`);
+    const existingBeacon = await Beacon.findOne({name});
+    if (existingBeacon) return res.status(400).send(`Unique beacon name is required. Beacon with name ${name} already exists`);
 
     if (req.user.role < 1) return res.status(403).send("Forbidden. User should be authorized");
 
@@ -32,11 +28,10 @@ router.post('/', [auth, authorized], async (req, res) => {
     const beacon = new Beacon({
         building: buildingId,
         name,
-        uuid
     });
     await beacon.save();
 
-    res.send(_.pick(beacon, ["_id", "building", "name", "uuid"]));
+    res.send(_.pick(beacon, ["_id", "building", "name"]));
 });
 
 router.delete("/:id", [auth, authorized], async (req, res) => {
