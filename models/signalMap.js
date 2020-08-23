@@ -94,7 +94,7 @@ function maxSignalsAmount(signalMap) {
     return maxSignalsAmount;
 }
 
-function estimateNearestNeighbors(clientBeacons, signalMaps, k, beaconIds) {
+function roomEstimation(clientBeacons, signalMaps, k, beaconIds) {
 
     if (!k)
         k = 3;
@@ -130,7 +130,7 @@ function estimateNearestNeighbors(clientBeacons, signalMaps, k, beaconIds) {
         vector: newPointVector
     };
 
-    return knnManager.estimatePointType(newPoint);
+    return knnManager.pointTypeEstimation(newPoint);
 
     /*let nearestNeighbors = new Array(k);
     nearestNeighbors[0] = {
@@ -234,7 +234,7 @@ function validateSignalMap(signalMap) {
 exports.SignalMap = SignalMap;
 exports.validate = validateSignalMap;
 exports.signalMapSchema = signalMapSchema;
-exports.estimateNearestNeighbors = estimateNearestNeighbors;
+exports.roomTypeEstimation = roomEstimation;
 exports.alignAndFillArrays = alignAndFillArrays;
 exports.updateNearestNeighbors = updateNearestNeighbors;
 exports.findIndexOfMaxDistanceNeighbor = findIndexOfMaxDistanceNeighbor;

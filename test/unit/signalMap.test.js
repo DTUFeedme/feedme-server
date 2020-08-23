@@ -1,5 +1,5 @@
 const {
-    estimateNearestNeighbors, alignAndFillArrays,
+    roomTypeEstimation, alignAndFillArrays,
     updateNearestNeighbors, findIndexOfMaxDistanceNeighbor,
     roomOfMostNeighbors
 } = require('../../models/signalMap');
@@ -24,7 +24,7 @@ describe('Location estimation algorithm', () => {
     let beaconIds;
 
     const exec = () => {
-        return estimateNearestNeighbors(registeredBeacons, signalMaps, k, beaconIds)
+        return roomTypeEstimation(registeredBeacons, signalMaps, k, beaconIds)
     };
 
     describe("Estimate room", () => {
@@ -87,14 +87,20 @@ describe('Location estimation algorithm', () => {
         });
 
         it("Should estimate room to be signalMap 1", () => {
-            const roomId = exec();
-            expect(roomId.toString()).to.equal(signalMap1.room.toString());
+            const roomEstimation = exec();
+            expect(roomEstimation.type.toString()).to.equal(signalMap1.room.toString());
+        });
+
+        it("Should return roomEstimation object with estimated room and percentage", () => {
+            const roomEstimation = exec();
+            expect(roomEstimation.type).to.be.ok;
+            expect(roomEstimation.certainty).to.be.ok;
         });
 
         it("Should also work with reversed order", () => {
             signalMaps = [signalMap3, signalMap2, signalMap1];
-            const roomId = exec();
-            expect(roomId.toString()).to.equal(signalMap1.room.toString());
+            const roomEstimation = exec();
+            expect(roomEstimation.type.toString()).to.equal(signalMap1.room.toString());
         });
 
         it("Should find correct room with 3 signalMaps", () => {
@@ -113,8 +119,8 @@ describe('Location estimation algorithm', () => {
             };
             signalMaps = [signalMap1, signalMap3, signalMap2];
 
-            const roomId = exec();
-            expect(roomId.toString()).to.equal(signalMap1.room.toString());
+            const roomEstimation = exec();
+            expect(roomEstimation.type.toString()).to.equal(signalMap1.room.toString());
         });
 
         it("Should return correct room when client beacons length is shorter than server beacon length", () => {
@@ -128,8 +134,8 @@ describe('Location estimation algorithm', () => {
                 signals: [50, 55]
             });
 
-            const roomId = exec();
-            expect(roomId.toString()).to.equal(signalMap1.room.toString());
+            const roomEstimation = exec();
+            expect(roomEstimation.type.toString()).to.equal(signalMap1.room.toString());
         });
 
         it("Should also locate the right room when client posts more beacons than server has", () => {
@@ -138,11 +144,11 @@ describe('Location estimation algorithm', () => {
                 signals: [50, 55]
             });
 
-            const roomId = exec();
-            expect(roomId.toString()).to.equal(signalMap1.room.toString());
+            const roomEstimation = exec();
+            expect(roomEstimation.type.toString()).to.equal(signalMap1.room.toString());
         });
 
-        it("Should estimate the correct room even though the nearest point is for another room", () => {
+        it("Should estimate the correct room even though the nearest point is for another room with correct percentage", () => {
             // Define a third signal map to point to the same room as signalMap2
             let signalMap3 = {
                 beacons: [
@@ -163,10 +169,11 @@ describe('Location estimation algorithm', () => {
 
             // should find 3 points. the closest point to room A, but the two others point to room B.
             // Should therefore estimate the room to be room B
-            const res = exec();
-            expect(res.toString()).to.equal(signalMap1.room.toString());
-
+            const roomEstimation = exec();
+            expect(roomEstimation.type.toString()).to.equal(signalMap1.room.toString());
+            expect(roomEstimation.certainty).to.approximately(66, 1);
         });
+
 
         it("Should not throw ", () => {
             signalMaps = [{
@@ -186,8 +193,8 @@ describe('Location estimation algorithm', () => {
             ];
 
             k = 2;
-            const res = exec();
-            expect(res).to.equal("5cc6cd0e785ba2674dbc7482")
+            const roomEstimation = exec();
+            expect(roomEstimation.type).to.equal("5cc6cd0e785ba2674dbc7482")
         });
     });
 
@@ -273,9 +280,9 @@ describe('Location estimation algorithm', () => {
             });
 
             nearestNeighbors.push({
-                  room: roomId2,
-                  distance: 2
-              }
+                    room: roomId2,
+                    distance: 2
+                }
             );
             const roomId = exec();
             expect(roomId.toString()).to.equal(roomId2.toString());

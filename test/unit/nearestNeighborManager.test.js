@@ -23,7 +23,7 @@ describe("KNN algorithm manager", () => {
             type: "2",
             vector: [30, 5]
         }];
-        knnManager = new KnnManager(dimension, initialPoints, k)
+        knnManager = new KnnManager(dimension, initialPoints, k);
     });
 
     describe("Initialization", () => {
@@ -153,42 +153,28 @@ describe("KNN algorithm manager", () => {
         });
 
         it("Should consist of the the 2 closest neighbors", () => {
+            const nearestType = initialPoints[2].type;
+            const secondNearestType = initialPoints[1].type;
+
             const res = exec();
 
-            expect(res.filter(elem => elem.type === initialPoints[2].type).length).to.equal(1);
+
+            expect(res.filter(elem => elem.type === nearestType).length).to.equal(1);
+            expect(res.filter(elem => elem.type === secondNearestType).length).to.equal(1);
+
+        });
+
+        it("Should consist of 2 closest neighbors", () => {
+            newPoint = {
+                vector: [18, 12]
+            };
+
+            const res = exec();
+            console.log(res);
+
+            expect(res.filter(elem => elem.type === initialPoints[0].type).length).to.equal(1);
             expect(res.filter(elem => elem.type === initialPoints[1].type).length).to.equal(1);
 
-        });
-    });
-
-    describe("Find point with maximum distance to new point", () => {
-        let points;
-        let newPoint;
-
-        beforeEach(() => {
-            points = [{
-                type: 0,
-                vector: [10, 20]
-            }, {
-                type: 1,
-                vector: [3, 4]
-            }, {
-                type: 2,
-                vector: [50, 10]
-            }];
-
-            newPoint = {
-                type: 4,
-                vector: [50,50]
-            }
-        });
-
-        const exec = () => {
-            return knnManager.maxDistance(newPoint, points);
-        };
-
-        it("Should estimate the right point to be at max distance", () => {
-            expect(exec().index).to.equal(1);
         });
     });
 
@@ -248,11 +234,11 @@ describe("KNN algorithm manager", () => {
     describe("Estimate point type ", () => {
         let newPoint;
         const exec = () => {
-            return knnManager.estimatePointType(newPoint);
+            return knnManager.pointTypeEstimation(newPoint);
         };
         beforeEach(() => {
             newPoint = {
-                vector: [18,12]
+                vector: [18, 12]
             }
         });
 
@@ -262,8 +248,10 @@ describe("KNN algorithm manager", () => {
         });
 
         it("Should return the point type with minimal distances if the nearest points have different types", () => {
-            const pointType = exec();
-            expect(pointType).to.equal(initialPoints[1].type.toString());
+            console.log("initial type", initialPoints[1].type);
+            const closestPoint = initialPoints[1].type;
+            const typeEstimation = exec();
+            expect(typeEstimation.type).to.equal(closestPoint);
         });
 
         it("Should return type that most nearest points has", () => {
@@ -272,7 +260,54 @@ describe("KNN algorithm manager", () => {
                 vector: [18, 12]
             });
             const res = exec();
-            expect(res).to.equal("1");
+            expect(res.type).to.equal("1");
+        });
+
+        it("Should return pointTypeEstimation object with certainty-percentage", () => {
+            const pointTypeEstimation = exec();
+            expect(pointTypeEstimation.type).to.be.ok;
+            expect(pointTypeEstimation.certainty).to.be.ok;
+        });
+
+        it("Should give 50% certainty", () => {
+            const pointTypeEstimation = exec();
+            expect(pointTypeEstimation.certainty).to.equal(50);
+        });
+
+        it("Should give 33% certainty with k=3", () => {
+            knnManager.k = 3;
+            const pointTypeEstimation = exec();
+            expect(pointTypeEstimation.certainty).to.approximately(33, 1);
+        });
+
+    });
+
+    describe("Calculate certainty map from typeCountMap", () => {
+        const typeCountMap = {};
+        let k;
+
+        beforeEach(() => {
+            k = 6;
+            knnManager = new KnnManager(2, [{vector: [1, 2], type: "324"}, {
+                vector: [1, 2],
+                type: "324"
+            }, {vector: [1, 2], type: "324"}, {vector: [1, 2], type: "324"}, {
+                vector: [1, 2],
+                type: "324"
+            }, {vector: [1, 2], type: "324"}], k);
+            // 6 nearest points have type 324 (3), 322 (2) and 321 (1)
+            typeCountMap["324"] = 3;
+            typeCountMap["322"] = 2;
+            typeCountMap["321"] = 1;
+        });
+
+        const exec = () => {
+            return knnManager.certaintyTypeMap(typeCountMap);
+        };
+
+        it("Should set percentage of type 324 to 50%", () => {
+            const certaintyMap = exec();
+            expect(certaintyMap["324"]).to.equal(50);
         });
 
     });

@@ -15,7 +15,7 @@ module.exports = class KnnManager {
         for (let i = 0; i < initialPoints.length; i++) {
             if (!initialPoints[i].vector)
                 throw new IllegalArgumentError("point at index " + i +
-                  " did not have vector array with at least 1 length");
+                    " did not have vector array with at least 1 length");
 
             if (initialPoints[i].vector.length !== dimension)
                 throw new IllegalArgumentError(`point ${JSON.stringify(initialPoints[i])} at index ${i} had vector with 
@@ -36,7 +36,7 @@ module.exports = class KnnManager {
     }
 
 
-    estimatePointType(newPoint) {
+    pointTypeEstimation(newPoint) {
         if (newPoint.type !== undefined)
             throw new IllegalArgumentError("New point should not have a type");
 
@@ -44,8 +44,10 @@ module.exports = class KnnManager {
 
         let typeCounterMap = this.typeCountMap(nearestPoints);
 
+        let certaintyMap = this.certaintyTypeMap(typeCounterMap);
 
         let k = this.k;
+
         let knnTied = this.isKnnTied(typeCounterMap);
         while (knnTied.tied) {
             k--;
@@ -54,7 +56,10 @@ module.exports = class KnnManager {
             knnTied = this.isKnnTied(typeCounterMap);
         }
 
-        return knnTied.type
+        return {
+            type: knnTied.type,
+            certainty: certaintyMap[knnTied.type]
+        }
     }
 
     isKnnTied(typeCountMap) {
@@ -85,7 +90,7 @@ module.exports = class KnnManager {
 
     typeCountMap(points) {
         const typeCounterMap = {};
-        for (let i = 0; i < this.k; i++) {
+        for (let i = 0; i < points.length; i++) {
             if (points[i].type in typeCounterMap) {
                 typeCounterMap[points[i].type]++;
             } else {
@@ -95,23 +100,23 @@ module.exports = class KnnManager {
         return typeCounterMap;
     }
 
+    certaintyTypeMap(typeCountMap) {
+        const certaintyMap = {};
+        for (const type in typeCountMap) {
+            certaintyMap[type] = Math.round(100 * typeCountMap[type] / this.k);
+        }
+        return certaintyMap;
+    }
+
 
     nearestNeighbors(newPoint, points, k) {
-        const nearestPoints = new Array(this.k);
+        const nearestPoints = new Array(k);
+
+        points.sort((a, b) => this.calcDist(newPoint, a) - this.calcDist(newPoint, b));
 
         // Initialize nearest neighbors to first k elements of points
         for (let i = 0; i < k; i++) {
             nearestPoints[i] = points[i];
-        }
-
-        let maxDist = this.maxDistance(newPoint, nearestPoints);
-
-        for (let i = 0; i < points.length; i++) {
-            const distance = this.calcDist(points[i], newPoint);
-            if (distance < maxDist.dist) {
-                nearestPoints[maxDist.index] = points[i];
-                maxDist = this.maxDistance(newPoint, nearestPoints);
-            }
         }
         return nearestPoints;
     }
@@ -130,26 +135,12 @@ module.exports = class KnnManager {
         return {index: minDistIndex, dist: minDist};
     }
 
-    maxDistance(point, points) {
-        let maxDist = -1;
-        let maxDistIndex = -1;
-
-        for (let i = 0; i < points.length; i++) {
-            const newDist = this.calcDist(points[i], point);
-            if (newDist > maxDist) {
-                maxDist = newDist;
-                maxDistIndex = i;
-            }
-        }
-        return {index: maxDistIndex, dist: maxDist};
-    }
-
     checkDimension(points) {
         for (let i = 0; i < points.length; i++) {
             if (!points[i].vector || points[i].vector.length !== this.dimension)
                 throw new IllegalArgumentError("Point " + JSON.stringify(points[i])
-                  + " with vector length " + points[i].vector.length
-                  + " did not have required dimension " + this.dimension)
+                    + " with vector length " + points[i].vector.length
+                    + " did not have required dimension " + this.dimension)
         }
     }
 

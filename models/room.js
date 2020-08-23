@@ -14,6 +14,9 @@ const roomSchema = new mongoose.Schema({
         minLength: 1,
         maxLength: 1024
     },*/
+    certainty: {
+        type: Number,
+    },
     building: {
         ref: 'Building',
         type: mongoose.Schema.ObjectId,

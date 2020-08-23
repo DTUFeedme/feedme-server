@@ -1,4 +1,4 @@
-const {SignalMap, validate, estimateNearestNeighbors} = require("../models/signalMap");
+const {SignalMap, validate, roomTypeEstimation} = require("../models/signalMap");
 const {Room} = require("../models/room");
 const {Beacon} = require("../models/beacon");
 
@@ -9,7 +9,7 @@ const createSignalMap = async (req, res) => {
     if (error) return res.status(400).send(error.details[0].message);
 
     const {beacons, roomId} = req.body;
-    let estimatedRoomId;
+    let roomEstimation;
 
     /*const buildingIds = new Set();
     for (let i = 0; i < beacons.length; i++) {
@@ -34,6 +34,7 @@ const createSignalMap = async (req, res) => {
         return res.status(400).send("Unable to find any beacons on server with requested ids ");
 
     let room;
+    let certainty;
     if (!roomId) {
 
         let signalMaps = await SignalMap.find({
@@ -60,8 +61,10 @@ const createSignalMap = async (req, res) => {
                 // const beaconIds = serverBeacons.map(b => b.id);
                 */
 
-        estimatedRoomId = await estimateNearestNeighbors(clientBeacons, signalMaps, 3, clientBeacons.map(b => b._id));
-        room = await Room.findById(estimatedRoomId);
+        roomEstimation = await roomTypeEstimation(clientBeacons, signalMaps, 3, clientBeacons.map(b => b._id));
+
+        room = await Room.findById(roomEstimation.type);
+        certainty = roomEstimation.certainty;
     } else if (req.user.role < 2){
         if (req.user.role < 1) return res.status(403).send("User should be authorized to post active signalmaps");
         room = await Room.findById(roomId);
@@ -69,21 +72,20 @@ const createSignalMap = async (req, res) => {
 
         if (!req.user.adminOnBuildings.find(elem => room.building.toString() === elem.toString()))
             return res.status(403).send("User was not admin on building containing room " + roomId);
-
-        /*const signalMap = await SignalMap.findOne({room: roomId});
-        if (signalMap){
-            return res.status(400).send("There is already a signalmap for the given room");
-        }*/
     }
 
     let signalMap = new SignalMap({
-        room: roomId || estimatedRoomId,
+        room: roomId || roomEstimation.type,
         beacons: clientBeacons,
-        isActive: !!roomId
+        isActive: !!roomId,
     });
 
-    if (signalMap.isActive)
+    if (signalMap.isActive){
         signalMap = await signalMap.save();
+    } else {
+        room.certainty = certainty;
+    }
+
     signalMap.room = room;
     res.send(signalMap);
 };

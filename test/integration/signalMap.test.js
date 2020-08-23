@@ -231,12 +231,28 @@ describe('/api/signalMaps', () => {
             expect(res.body.isActive).to.be.false;
         });
 
+        it("Should report back certainty percentage", async () => {
+            const signalMap = new SignalMap({
+                beacons: [{
+                    _id: beaconId,
+                    signals: [39, 41]
+                }],
+                room: roomId,
+                isActive: true
+            });
+            await signalMap.save();
+            roomId = undefined;
+            const res = await exec();
+            expect(res.body.room.certainty).to.equal(100);
+            // expect(res.body.room._id).to.equal(signalMap.room.toString());
+        });
+
         it("Should set isActive to true if roomId provided", async () => {
             const res = await exec();
             expect(res.body.isActive).to.be.true;
         });
 
-        it("Should estimate room if roomId not provided", async () => {
+        it("Should estimate room if roomId not provided ", async () => {
             const signalMap = new SignalMap({
                 beacons: [{
                     _id: beaconId,
@@ -353,6 +369,7 @@ describe('/api/signalMaps', () => {
             roomId = undefined;
             const res = await exec();
             expect(res.body.room._id.toString()).to.equal(roooom);
+            expect(res.body.room.certainty).to.equal(67);
         });
 
         it("Should not throw error if beacon was in client beacons array but not in servermap", async () => {
@@ -558,6 +575,10 @@ describe('/api/signalMaps', () => {
             const res = await exec();
             expect(res.statusCode).to.equal(400);
         })
+
+        it("Should return certainty percentage of room estimation", async () => {
+
+        });
     });
 
     describe("PATCH /confirm-room/:id Confirm room", () => {
