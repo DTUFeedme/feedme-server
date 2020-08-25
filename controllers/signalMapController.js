@@ -95,6 +95,21 @@ const getSignalMaps = async (req, res) => {
     res.send(signalMaps);
 };
 
+const deleteFromRoom = async (req, res) => {
+    const user = req.user;
+    const roomId = req.params.id;
+    const room = await Room.findById(roomId);
+    if (!room)
+        return res.status(400).send(`Room with id ${roomId} was not found`);
+
+    if (!user.adminOnBuildings.includes(room.building))
+        return res.status(403).send(`Building admin rights is required to delete a signal map from room`);
+
+    const result = await SignalMap.deleteMany({room: roomId});
+    res.send(result);
+};
+
 module.exports.createSignalMap = createSignalMap;
 module.exports.confirmRoom = confirmRoom;
 module.exports.getSignalMaps = getSignalMaps;
+module.exports.deleteFromRoom = deleteFromRoom;

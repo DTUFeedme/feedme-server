@@ -768,4 +768,94 @@ describe('/api/signalMaps', () => {
             expect(res.body[0].beacons[0]._id).to.equal(beaconId.toString());
         });
     })
+
+    describe(" DELETE /room/:roomId", () => {
+        let roomId;
+        const exec = () => {
+            return request(server)
+                .delete('/api/signalMaps/room/' + roomId)
+                .set({'x-auth-token': token});
+        };
+
+        beforeEach(async () => {
+            signals = [40];
+
+            beaconId = mongoose.Types.ObjectId();
+            buildingId = mongoose.Types.ObjectId();
+            user.adminOnBuildings.push(buildingId);
+
+            const room = new Room({
+                name: "222",
+                building: buildingId
+            });
+            await room.save();
+
+            roomId = room.id;
+
+            signalMap = new SignalMap({
+                room: roomId,
+                beacons: [{_id: beaconId, signals: [39, 41]}]
+            });
+
+            await signalMap.save();
+
+            beacons = [{
+                beaconId,
+                signals
+            }];
+            await user.save();
+            token = user.generateAuthToken();
+        });
+
+        it("Should not have any signalmaps present after delete request", async () => {
+            let signalMaps = await SignalMap.find({});
+            expect(signalMaps.length).to.equal(1);
+
+            await exec();
+            signalMaps = await SignalMap.find({});
+            expect(signalMaps.length).to.equal(0);
+        });
+
+        it("Should return 403 if user not logged in", async () => {
+            user.role = 0;
+            await user.save();
+            const res = await exec();
+            expect(res.statusCode).to.equal(403);
+        });
+
+        it("Should return 403 if user was not building admin", async () => {
+            user.adminOnBuildings = [];
+            token = user.generateAuthToken();
+            await user.save();
+
+            const res = await exec();
+            expect(res.statusCode).to.equal(403);
+        });
+
+        it("Should return 400 if room id was not valid", async () => {
+            roomId = "not-valid";
+            const res = await exec();
+            expect(res.statusCode).to.equal(400);
+        });
+
+        it("Should return 400 if room with provided id did not exist in database", async () => {
+            roomId = mongoose.Types.ObjectId();
+            const res = await exec();
+            expect(res.statusCode).to.equal(400);
+        });
+
+        it("Should delete only signal map from specified room", async () => {
+            signalMap = new SignalMap({
+                room: mongoose.Types.ObjectId(),
+                beacons: [{_id: beaconId, signals: [39, 41]}]
+            });
+
+            await signalMap.save();
+
+            await exec();
+            const foundSignalMap = await SignalMap.findById(signalMap.id);
+            expect(foundSignalMap).to.be.ok;
+
+        });
+    });
 });
