@@ -29,9 +29,8 @@ const userSchema = new mongoose.Schema({
         validate: /^[a-zA-Z\d]{8}-[a-zA-Z\d]{4}-[a-zA-Z\d]{4}-[a-zA-Z\d]{4}-[a-zA-Z\d]{12}$/
     },
     currentRoom: {
-        type: String,
-        minLength: 3,
-        maxLength: 30
+        type: mongoose.Types.ObjectId,
+        ref: "Room",
     },
     roomLastUpdated: {
         type: Date,

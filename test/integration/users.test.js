@@ -1,4 +1,8 @@
 const {User} = require('../../models/user');
+const {Beacon} = require('../../models/beacon');
+const {SignalMap} = require('../../models/signalMap');
+const {Building} = require('../../models/building');
+const {Room} = require('../../models/room');
 const request = require('supertest');
 let assert = require('assert');
 const app = require('../..');
@@ -35,6 +39,10 @@ describe('/api/users', () => {
     });
     afterEach(async () => {
         await User.deleteMany();
+        await Beacon.deleteMany();
+        await SignalMap.deleteMany();
+        await Room.deleteMany();
+        await Building.deleteMany();
     });
 
     describe("GET /", () => {
@@ -82,6 +90,9 @@ describe('/api/users', () => {
     });
 
     describe("GET /location", () => {
+        let roomId;
+        let buildingId;
+        let beaconId;
         const exec = () => {
             return request(server)
                 .get("/api/users/location")
@@ -89,14 +100,23 @@ describe('/api/users', () => {
         };
 
         beforeEach(async () => {
+            const building =  new Building({name: "hey"});
+            buildingId = building.id;
+            const room = new Room({building: buildingId, name: "hey"});
+            roomId = room.id;
+            const beacon = new Beacon({name: "hejho", building: buildingId});
+
             user = new User({
-                currentRoom: "324",
+                currentRoom: roomId,
                 roomLastUpdated: new Date(),
                 role: 2,
                 refreshToken: uuidv4()
             });
             token = user.generateAuthToken();
             await user.save();
+            await building.save();
+            await room.save();
+            await beacon.save();
         });
 
         it("Should return a list of users with proper length", async () => {
@@ -111,7 +131,30 @@ describe('/api/users', () => {
             expect(Object.keys(fetchedUser).length).to.equal(3);
         });
 
+        it("Should update user's location after posting signalmap", async () => {
+            await new SignalMap({beacons: [{beacon: beaconId, signals: [-10]}], room: roomId, isActive: true}).save();
+            await new Beacon({name: "hej", building: buildingId}).save();
 
+            user.currentRoom = undefined;
+            await user.save();
+            await request(server).post("/api/signalmaps/" ).set("x-auth-token", token).send({
+                beacons: [{name: "hej", signals: [-10]}],
+            });
+
+            const res = await exec();
+            const updatedUser = res.body.find(u => u._id === user.id);
+            console.log(updatedUser);
+            expect(updatedUser.currentRoom).to.equal(roomId);
+        });
+
+        it("Should only be allowed if user is an admin", async () => {
+            user.role = 1;
+            token = user.generateAuthToken();
+            await user.save();
+
+            const res = await exec();
+            expect(res.statusCode).to.equal(403);
+        });
     });
 
     describe('POST /', () => {

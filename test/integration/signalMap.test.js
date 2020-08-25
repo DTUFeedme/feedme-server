@@ -228,6 +228,39 @@ describe('/api/signalMaps', () => {
             expect(res.body.isActive).to.be.false;
         });
 
+        it("Should set user's current room after estimating room", async () => {
+            const signalMap = new SignalMap({
+                beacons: [{
+                    _id: beaconId,
+                    signals: [39, 41]
+                }],
+                room: roomId,
+                isActive: true
+            });
+            await signalMap.save();
+            roomId = undefined;
+            const now = new Date();
+            await exec();
+            const updatedUser = await User.findById(user.id);
+            expect(updatedUser.roomLastUpdated).to.be.at.least(now);
+        });
+
+        it("Should set currentRoom to correct room after room estimation", async () => {
+            const signalMap = new SignalMap({
+                beacons: [{
+                    _id: beaconId,
+                    signals: [39, 41]
+                }],
+                room: roomId,
+                isActive: true
+            });
+            await signalMap.save();
+            roomId = undefined;
+            await exec();
+            const updatedUser = await User.findById(user.id);
+            expect(updatedUser.currentRoom.toString()).to.equal(signalMap.room.toString());
+        });
+
         it("Should report back certainty percentage", async () => {
             const signalMap = new SignalMap({
                 beacons: [{
