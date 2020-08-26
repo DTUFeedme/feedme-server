@@ -3,7 +3,6 @@ const {Building} = require('../../models/building');
 const {Question} = require('../../models/question');
 const {Feedback} = require('../../models/feedback');
 const {Room} = require('../../models/room');
-const {Beacon} = require('../../models/beacon');
 const {Answer} = require('../../models/answer');
 const logger = require('../../startup/logger');
 const request = require('supertest');
@@ -47,7 +46,6 @@ describe('/api/feedback', () => {
         await Building.deleteMany();
         await Room.deleteMany();
         await Question.deleteMany();
-        await Beacon.deleteMany();
         await Feedback.deleteMany();
     });
 

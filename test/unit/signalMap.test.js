@@ -21,10 +21,10 @@ describe('Location estimation algorithm', () => {
     let signalMap2;
     let signalMap3;
     let k;
-    let beaconIds;
+    let beaconNames;
 
     const exec = () => {
-        return roomTypeEstimation(registeredBeacons, signalMaps, k, beaconIds)
+        return roomTypeEstimation(registeredBeacons, signalMaps, k, beaconNames)
     };
 
     describe("Estimate room", () => {
@@ -32,10 +32,10 @@ describe('Location estimation algorithm', () => {
 
             k = 3;
             registeredBeacons = [{
-                beaconId: mongoose.Types.ObjectId(),
+                name: mongoose.Types.ObjectId(),
                 signals: [20]
             }, {
-                beaconId: mongoose.Types.ObjectId(),
+                name: mongoose.Types.ObjectId(),
                 signals: [10]
             }];
 
@@ -43,11 +43,11 @@ describe('Location estimation algorithm', () => {
             signalMap1 = {
                 beacons: [
                     {
-                        _id: registeredBeacons[0].beaconId,
+                        name: registeredBeacons[0].name,
                         signals: [19, 21]
                     },
                     {
-                        _id: registeredBeacons[1].beaconId,
+                        name: registeredBeacons[1].name,
                         signals: [9, 11]
                     }
                 ],
@@ -57,11 +57,11 @@ describe('Location estimation algorithm', () => {
             signalMap2 = {
                 beacons: [
                     {
-                        _id: registeredBeacons[0].beaconId,
+                        name: registeredBeacons[0].name,
                         signals: [50, 55]
                     },
                     {
-                        _id: registeredBeacons[1].beaconId,
+                        name: registeredBeacons[1].name,
                         signals: [1, 2]
                     }
                 ],
@@ -71,18 +71,18 @@ describe('Location estimation algorithm', () => {
             signalMap3 = {
                 beacons: [
                     {
-                        _id: registeredBeacons[0].beaconId,
+                        name: registeredBeacons[0].name,
                         signals: [100, 102]
                     },
                     {
-                        _id: registeredBeacons[1].beaconId,
+                        name: registeredBeacons[1].name,
                         signals: [300, 302]
                     }
                 ],
                 room: mongoose.Types.ObjectId()
             };
 
-            beaconIds = [registeredBeacons[0].beaconId, registeredBeacons[1].beaconId];
+            beaconNames = [registeredBeacons[0].name, registeredBeacons[1].name];
             signalMaps = [signalMap1, signalMap2, signalMap3]
         });
 
@@ -107,11 +107,11 @@ describe('Location estimation algorithm', () => {
             let signalMap3 = {
                 beacons: [
                     {
-                        _id: registeredBeacons[0].beaconId,
+                        name: registeredBeacons[0].name,
                         signals: [18, 22]
                     },
                     {
-                        _id: registeredBeacons[1].beaconId,
+                        name: registeredBeacons[1].name,
                         signals: [8, 12]
                     }
                 ],
@@ -126,11 +126,11 @@ describe('Location estimation algorithm', () => {
         it("Should return correct room when client beacons length is shorter than server beacon length", () => {
 
             signalMap1.beacons.push({
-                _id: registeredBeacons[0].beaconId,
+                name: registeredBeacons[0].name,
                 signals: [50, 55]
             });
             signalMap2.beacons.push({
-                _id: registeredBeacons[0].beaconId,
+                name: registeredBeacons[0].name,
                 signals: [50, 55]
             });
 
@@ -140,7 +140,7 @@ describe('Location estimation algorithm', () => {
 
         it("Should also locate the right room when client posts more beacons than server has", () => {
             registeredBeacons.push({
-                beaconId: mongoose.Types.ObjectId(),
+                name: mongoose.Types.ObjectId(),
                 signals: [50, 55]
             });
 
@@ -153,11 +153,11 @@ describe('Location estimation algorithm', () => {
             let signalMap3 = {
                 beacons: [
                     {
-                        _id: registeredBeacons[0].beaconId,
+                        name: registeredBeacons[0].name,
                         signals: [50, 55]
                     },
                     {
-                        _id: registeredBeacons[1].beaconId,
+                        name: registeredBeacons[1].name,
                         signals: [1, 2]
                     }
                 ],
@@ -180,16 +180,16 @@ describe('Location estimation algorithm', () => {
                 isActive: true,
                 _id: "5cc6ec3eaf4f896906f43f0d",
                 room: "5cc6cd0e785ba2674dbc7482",
-                beacons: [{_id: "5ca4b1776a3ec26dfd07362d", signals: [-60]}, {
-                    _id: "5ca45b286a3ec26dfd0735b5",
+                beacons: [{name: "5ca4b1776a3ec26dfd07362d", signals: [-60]}, {
+                    name: "5ca45b286a3ec26dfd0735b5",
                     signals: [-64]
                 }],
                 __v: 0
             }];
 
             registeredBeacons = [
-                {signals: [-78], beaconId: "5ca4b1776a3ec26dfd07362d"},
-                {signals: [-70], beaconId: "5ca45b286a3ec26dfd0735b5"}
+                {signals: [-78], name: "5ca4b1776a3ec26dfd07362d"},
+                {signals: [-70], name: "5ca45b286a3ec26dfd0735b5"}
             ];
 
             k = 2;
@@ -349,32 +349,32 @@ describe('Location estimation algorithm', () => {
 
     describe('align and fill arrays', () => {
 
-        let alignedBeaconIds;
+        let alignedBeaconNames;
         let unAlignedBeacons;
-        let id1;
-        let id2;
-        let id3;
+        let beaconName1;
+        let beaconName2;
+        let beaconName3;
         beforeEach(() => {
-            id1 = mongoose.Types.ObjectId();
-            id2 = mongoose.Types.ObjectId();
-            id3 = mongoose.Types.ObjectId();
+            beaconName1 = mongoose.Types.ObjectId();
+            beaconName2 = mongoose.Types.ObjectId();
+            beaconName3 = mongoose.Types.ObjectId();
 
-            alignedBeaconIds = [id1, id2];
+            alignedBeaconNames = [beaconName1, beaconName2];
 
             unAlignedBeacons = [
                 {
-                    beaconId: id2,
+                    name: beaconName2,
                     signals: []
                 },
                 {
-                    beaconId: id1,
+                    name: beaconName1,
                     signals: []
                 }
             ]
         });
 
         const exec = () => {
-            return alignAndFillArrays(alignedBeaconIds, unAlignedBeacons);
+            return alignAndFillArrays(alignedBeaconNames, unAlignedBeacons);
         };
 
 
@@ -382,49 +382,49 @@ describe('Location estimation algorithm', () => {
 
             const aligned = exec();
 
-            expect(aligned[0].beaconId).to.equal(alignedBeaconIds[0]);
-            expect(aligned[1].beaconId).to.equal(alignedBeaconIds[1]);
+            expect(aligned[0].name).to.equal(alignedBeaconNames[0]);
+            expect(aligned[1].name).to.equal(alignedBeaconNames[1]);
         });
 
         it("Should return aligned beacon array with array length 3", () => {
 
             unAlignedBeacons = [
                 {
-                    beaconId: id3,
+                    name: beaconName3,
                     signals: []
                 },
                 {
-                    beaconId: id1,
+                    name: beaconName1,
                     signals: []
                 }, {
-                    beaconId: id2,
+                    name: beaconName2,
                     signals: []
                 }
             ];
 
-            alignedBeaconIds = [id1, id2, id3];
+            alignedBeaconNames = [beaconName1, beaconName2, beaconName3];
 
             const aligned = exec();
-            expect(aligned[2].beaconId).to.equal(alignedBeaconIds[2]);
+            expect(aligned[2].name).to.equal(alignedBeaconNames[2]);
         });
 
         it("Should fill array with -100 if an item wasn't in beacon id", () => {
             let id4 = mongoose.Types.ObjectId();
             unAlignedBeacons = [
                 {
-                    beaconId: id3,
+                    name: beaconName3,
                     signals: [-10]
                 },
                 {
-                    beaconId: id1,
+                    name: beaconName1,
                     signals: [-20]
                 }, {
-                    beaconId: id4,
+                    name: id4,
                     signals: [-30]
                 }
             ];
 
-            alignedBeaconIds = [id1, id2, id3, id4];
+            alignedBeaconNames = [beaconName1, beaconName2, beaconName3, id4];
             const res = exec();
             expect(res[1].signals[0]).to.equal(-100);
         });
@@ -434,8 +434,8 @@ describe('Location estimation algorithm', () => {
             expect(exec).to.throw(TypeError);
         });
 
-        it("Should throw if beaconIds empty", () => {
-            alignedBeaconIds = [];
+        it("Should throw if names empty", () => {
+            alignedBeaconNames = [];
             expect(exec).to.throw(IllegalArgumentError);
         });
     });

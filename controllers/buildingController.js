@@ -3,7 +3,6 @@ const { Room } = require("../models/room");
 const { Question } = require("../models/question");
 const { Feedback } = require('../models/feedback');
 const { User } = require('../models/user');
-const { Beacon } = require('../models/beacon');
 const _ = require('lodash');
 
 const deleteBuilding = async (req, res) => {
@@ -18,7 +17,6 @@ const deleteBuilding = async (req, res) => {
         await Question.deleteMany({ rooms: rooms[i].id });
     }
     await Room.deleteMany({ building: id });
-    await Beacon.deleteMany({building: id});
 
     if (!building) return res.status(404).send(`Building with id ${id} was not found in database`);
 

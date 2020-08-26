@@ -1,5 +1,4 @@
 const {User} = require('../../models/user');
-const {Beacon} = require('../../models/beacon');
 const {SignalMap} = require('../../models/signalMap');
 const {Building} = require('../../models/building');
 const {Room} = require('../../models/room');
@@ -39,7 +38,6 @@ describe('/api/users', () => {
     });
     afterEach(async () => {
         await User.deleteMany();
-        await Beacon.deleteMany();
         await SignalMap.deleteMany();
         await Room.deleteMany();
         await Building.deleteMany();
@@ -92,7 +90,7 @@ describe('/api/users', () => {
     describe("GET /location", () => {
         let roomId;
         let buildingId;
-        let beaconId;
+        let beaconName;
         const exec = () => {
             return request(server)
                 .get("/api/users/location")
@@ -104,7 +102,7 @@ describe('/api/users', () => {
             buildingId = building.id;
             const room = new Room({building: buildingId, name: "hey"});
             roomId = room.id;
-            const beacon = new Beacon({name: "hejho", building: buildingId});
+            beaconName = "random name";
 
             user = new User({
                 currentRoom: roomId,
@@ -116,7 +114,6 @@ describe('/api/users', () => {
             await user.save();
             await building.save();
             await room.save();
-            await beacon.save();
         });
 
         it("Should return a list of users with proper length", async () => {
@@ -132,8 +129,7 @@ describe('/api/users', () => {
         });
 
         it("Should update user's location after posting signalmap", async () => {
-            await new SignalMap({beacons: [{beacon: beaconId, signals: [-10]}], room: roomId, isActive: true}).save();
-            await new Beacon({name: "hej", building: buildingId}).save();
+            await new SignalMap({beacons: [{name: beaconName, signals: [-10]}], room: roomId, isActive: true}).save();
 
             user.currentRoom = undefined;
             await user.save();

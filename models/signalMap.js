@@ -6,9 +6,9 @@ const IllegalArgumentError = require("../errors/IllegalArgumentError");
 const signalMapSchema = new mongoose.Schema({
     beacons: {
         type: [{
-            beacon: {
-                type: mongoose.Types.ObjectId,
-                ref: "Beacon"
+            name: {
+                type: String,
+                required: true
             },
             signals: [Number]
         }]
@@ -23,30 +23,25 @@ const signalMapSchema = new mongoose.Schema({
     }
 });
 
-function alignAndFillArrays(alignedBeaconIds, unAlignedBeacons) {
-    if (!alignedBeaconIds || alignedBeaconIds.length <=0)
+function alignAndFillArrays(alignedBeaconNames, unAlignedBeacons) {
+    if (!alignedBeaconNames || alignedBeaconNames.length <= 0)
         throw new IllegalArgumentError("alignedBeaconIds should be at least one-length array");
 
     // Create new array of aligned beacons
-    const alignedBeacons = new Array(alignedBeaconIds.length);
+    const alignedBeacons = new Array(alignedBeaconNames.length);
 
     const signalLength = unAlignedBeacons[0].signals.length;
 
 
-    for (let i = 0; i < alignedBeaconIds.length; i++) {
+    for (let i = 0; i < alignedBeaconNames.length; i++) {
         // Find beacon with particular beacon id
-        const beacon = unAlignedBeacons.find(beacon => {
-              if (beacon.beaconId)
-                  return beacon.beaconId.toString() === alignedBeaconIds[i].toString();
-              return beacon._id.toString() === alignedBeaconIds[i].toString();
-          });
+        const beacon = unAlignedBeacons.find(beacon => beacon.name === alignedBeaconNames[i]);
         // If beacon doesn't already exist, then add it with lowest value (-100)
         if (!beacon) {
             alignedBeacons[i] = {
-                beaconId: alignedBeaconIds[i],
+                name: alignedBeaconNames[i],
                 signals: new Array(signalLength).fill(-100)
             };
-            alignedBeacons[i].signals.fill(-100)
         } else {
             alignedBeacons[i] = beacon;
         }
@@ -94,19 +89,21 @@ function maxSignalsAmount(signalMap) {
     return maxSignalsAmount;
 }
 
-function roomEstimation(clientBeacons, signalMaps, k, beaconIds) {
+function roomEstimation(clientBeacons, signalMaps, k) {
 
     if (!k)
         k = 3;
 
+    const beaconNames = clientBeacons.map(b => b.name);
+
     const initialPoints = [];
     for (let i = 0; i < signalMaps.length; i++) {
-        const alignedServerBeacons = alignAndFillArrays(beaconIds, signalMaps[i].beacons);
+        const alignedServerBeacons = alignAndFillArrays(beaconNames, signalMaps[i].beacons);
         for (let j = 0; j < alignedServerBeacons[0].signals.length; j++) {
             const vector = [];
             for (let l = 0; l < alignedServerBeacons.length; l++) {
                 vector.push(
-                  alignedServerBeacons[l].signals[j]
+                    alignedServerBeacons[l].signals[j]
                 )
             }
             initialPoints.push({vector, type: signalMaps[i].room.toString()})
@@ -117,11 +114,11 @@ function roomEstimation(clientBeacons, signalMaps, k, beaconIds) {
     if (initialPoints.length < k)
         k = initialPoints.length;
 
-    const dimension = beaconIds.length;
+    const dimension = beaconNames.length;
     const knnManager = new KnnManager(dimension, initialPoints, k);
 
     const newPointVector = [];
-    const alignedClientBeacons = alignAndFillArrays(beaconIds, clientBeacons);
+    const alignedClientBeacons = alignAndFillArrays(beaconNames, clientBeacons);
     for (let i = 0; i < alignedClientBeacons.length; i++) {
         newPointVector.push(alignedClientBeacons[i].signals[0]);
     }
@@ -224,8 +221,7 @@ function validateSignalMap(signalMap) {
                 .required(),
             signals: Joi.array().items(Joi.number().min(-200).max(0))
         }).required()).required(),
-        roomId: Joi.objectId(),
-        buildingId: Joi.objectId()
+        roomId: Joi.objectId()
     };
     return Joi.validate(signalMap, schema);
 }
