@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken");
 const {User} = require('../../models/user');
 const request = require('supertest');
 const expect = require("chai").expect;
-const app = require('../..');
+const app = require('../../index');
 let server;
 const config = require('config');
 const bcrypt = require("bcryptjs");

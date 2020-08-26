@@ -10,7 +10,6 @@ module.exports = function (err, req, res, next) {
     * the next arguments are all objects to be stored with the log message */
     //winston.error(err.message, err);
     if (typeof err === "ValidationError") {
-
     }
 
 
@@ -22,5 +21,6 @@ module.exports = function (err, req, res, next) {
     const errorMessage = err.toString();
     logger.error(errorMessage);
     res.status(500).send(errorMessage);
+
     next();
 };

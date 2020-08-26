@@ -1,37 +1,13 @@
 const {SignalMap, validate, roomTypeEstimation} = require("../models/signalMap");
 const {Room} = require("../models/room");
-const {Beacon} = require("../models/beacon");
-
 
 const createSignalMap = async (req, res) => {
     const {error} = validate(req.body);
 
     if (error) return res.status(400).send(error.details[0].message);
 
-    const {beacons, roomId, buildingId} = req.body;
+    const {beacons, roomId} = req.body;
     let roomEstimation;
-
-    const clientBeacons = [];
-
-    let serverBeacons;
-    if (buildingId) {
-        serverBeacons = await Beacon.find({name: beacons.map(b => b.name), building: buildingId});
-    } else {
-        serverBeacons = await Beacon.find({name: beacons.map(b => b.name)});
-    }
-
-    if (!serverBeacons || serverBeacons.length <= 0)
-        return res.status(400).send("Was unable to find any matching beacons");
-    const rooms = await Room.find({building: {$in: serverBeacons.map(b => b.building)}});
-
-    beacons.forEach(b => {
-        const sbs = serverBeacons.filter(sb => sb.name === b.name);
-        if (sbs.length > 0) {
-            clientBeacons.push({_id: sbs[0].id, signals: b.signals})
-        }
-    });
-    if (clientBeacons.length <= 0)
-        return res.status(400).send("Unable to find any beacons on server with requested ids ");
 
     let room;
     let certainty;
@@ -39,12 +15,12 @@ const createSignalMap = async (req, res) => {
 
         let signalMaps = await SignalMap.find({
             isActive: true,
-            room: {$in: rooms.map(room => room.id)}
         });
 
         if (signalMaps.length <= 0) return res.status(400).send("Unable to find any active signalMaps " +
             "in current building");
-        roomEstimation = await roomTypeEstimation(clientBeacons, signalMaps, 3, clientBeacons.map(b => b._id));
+
+        roomEstimation = await roomTypeEstimation(beacons, signalMaps, 3);
 
         room = await Room.findById(roomEstimation.type);
         certainty = roomEstimation.certainty;
@@ -57,14 +33,12 @@ const createSignalMap = async (req, res) => {
         room = await Room.findById(roomId);
         if (!room) return res.status(400).send(`Room with id ${roomId} was not found`);
 
-        console.log(req.user.adminOnBuildings);
         if (!req.user.adminOnBuildings.find(elem => room.building.toString() === elem.toString()))
             return res.status(403).send("User was not admin on building containing room " + roomId);
     }
-
     let signalMap = new SignalMap({
         room: roomId || roomEstimation.type,
-        beacons: clientBeacons,
+        beacons: beacons,
         isActive: !!roomId,
     });
 

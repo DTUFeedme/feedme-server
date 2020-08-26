@@ -2,7 +2,6 @@ const express = require('express');
 const {auth, admin} = require("../middleware/auth");
 const router = express.Router();
 const {User} = require('../models/user');
-const {Beacon} = require('../models/beacon');
 const {Building} = require('../models/building');
 const {Room} = require('../models/room');
 const {Question} = require('../models/question');
@@ -12,7 +11,6 @@ const {Answer} = require("../models/answer");
 
 router.delete("/", [auth, admin], async (req, res) => {
     const deleteUser = await User.deleteMany({role: {$lt: 2}});
-    const deleteBeacon = await Beacon.deleteMany({});
     const deleteBuilding = await Building.deleteMany({});
     const deleteRoom = await Room.deleteMany({});
     const deleteQuestion = await Question.deleteMany({});
