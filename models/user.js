@@ -35,7 +35,7 @@ const userSchema = new mongoose.Schema({
     roomLastUpdated: {
         type: Date,
     }
-},);
+}, {timestamps: {createdAt: false, updatedAt: true}});
 
 userSchema.methods.generateAuthToken = function (timeNow) {
     const expInSec = 60 * 5; // Five minutes
