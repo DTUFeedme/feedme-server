@@ -30,9 +30,13 @@ router.post("/", async (req, res) => {
 });
 
 router.post("/refresh", authExpired, async (req, res) => {
-    const token = req.header("x-auth-token");
     const {refreshToken} = req.body;
     const user = req.user;
+
+    const oneMonthAgo = new Date();
+    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+    if (user.role > 0 && oneMonthAgo > user.updatedAt)
+        return res.status(401).send("User was last active more than one month ago, and needs to log in again");
 
     if (!refreshToken) return res.status(400).send("No refreshToken provided");
     if (!validate(refreshToken)) return res.status(400).send(`Refresh token ${refreshToken} did not have a valid uuid format`);

@@ -79,6 +79,13 @@ describe('/api/users', () => {
             expect(res.statusCode).to.equal(403);
         });
 
+        it("Should not update updatedAt", async () => {
+            const now = new Date();
+            await exec();
+            const foundUser = await User.findById(user.id);
+            expect(now > foundUser.updatedAt).to.be.ok;
+        });
+
         it("Should return 401 if token not provided", async () => {
             token = null;
             const res = await exec();

@@ -12,7 +12,7 @@ const chai = require("chai");
 const chaiAsPromised = require("chai-as-promised");
 chai.use(chaiAsPromised);
 const expect = require('chai').expect;
-const { v4: uuidv4 } = require('uuid');
+const {v4: uuidv4} = require('uuid');
 
 describe('/api/questions', () => {
     let server;
@@ -54,8 +54,8 @@ describe('/api/questions', () => {
 
         const exec = () => {
             return request(server)
-              .get('/api/questions' + queryString)
-              .set({'x-auth-token': token, 'roomId': roomId});
+                .get('/api/questions' + queryString)
+                .set({'x-auth-token': token, 'roomId': roomId});
         };
 
         beforeEach(async () => {
@@ -89,39 +89,40 @@ describe('/api/questions', () => {
         it('Should return 401 if token not provided', async () => {
             token = null;
             const res = await exec();
-        expect(res.statusCode).to.equal(401);
+            expect(res.statusCode).to.equal(401);
 
         });
 
         it('401 if wrong token format sent', async () => {
             token = "hej";
             const res = await exec();
-        expect(res.statusCode).to.equal(401);
+            expect(res.statusCode).to.equal(401);
         });
 
         it('404 if user was not found', async () => {
             user = new User({refreshToken: uuidv4()});
             token = user.generateAuthToken();
             const res = await exec();
-        expect(res.statusCode).to.equal(404);
+            expect(res.statusCode).to.equal(404);
         });
 
         it('400 if roomId not provided', async () => {
             roomId = null;
-            const res = await exec();expect(res.statusCode).to.equal(400);
+            const res = await exec();
+            expect(res.statusCode).to.equal(400);
         });
 
         it('400 if roomId was wrong format', async () => {
             roomId = '12345';
             const res = await exec();
-expect(res.statusCode).to.equal(400);
+            expect(res.statusCode).to.equal(400);
         });
 
         it('404 if room was not found', async () => {
 
             roomId = mongoose.Types.ObjectId();
             const res = await exec();
-        expect(res.statusCode).to.equal(404);
+            expect(res.statusCode).to.equal(404);
 
         });
         it('should return questions array with 1 length', async () => {
@@ -201,8 +202,8 @@ expect(res.statusCode).to.equal(400);
 
         const exec = () => {
             return request(server)
-              .get('/api/questions/active')
-              .set({'x-auth-token': token, 'roomId': roomId});
+                .get('/api/questions/active')
+                .set({'x-auth-token': token, 'roomId': roomId});
         };
 
         beforeEach(async () => {
@@ -287,21 +288,21 @@ expect(res.statusCode).to.equal(400);
 
         const exec = () => {
             return request(server)
-              .post(url)
-              .set('x-auth-token', token)
-              .send({rooms, value, answerOptions});
+                .post(url)
+                .set('x-auth-token', token)
+                .send({rooms, value, answerOptions});
         };
 
         it('401 if token not provided', async () => {
             token = null;
             const res = await exec();
-        expect(res.statusCode).to.equal(401);
+            expect(res.statusCode).to.equal(401);
         });
 
         it('401 if token not valid', async () => {
             token = '12345';
             const res = await exec();
-        expect(res.statusCode).to.equal(401);
+            expect(res.statusCode).to.equal(401);
         });
 
         it('404 if user was not found', async () => {
@@ -316,13 +317,13 @@ expect(res.statusCode).to.equal(400);
         it('400 if roomId not provided', async () => {
             rooms = [null];
             const res = await exec();
-expect(res.statusCode).to.equal(400);
+            expect(res.statusCode).to.equal(400);
         });
 
         it('400 if roomId not valid', async () => {
             rooms = ['12345'];
             const res = await exec();
-expect(res.statusCode).to.equal(400);
+            expect(res.statusCode).to.equal(400);
         });
 
         it("400 if question posted in rooms of different buildings", async () => {
@@ -342,19 +343,34 @@ expect(res.statusCode).to.equal(400);
 
             rooms = [roomId, room.id];
             const res = await exec();
-expect(res.statusCode).to.equal(400);
+            expect(res.statusCode).to.equal(400);
+        });
+
+        it("Should work", async () => {
+            const room1 = new Room({name: "hey", _id: "5f466a7ed1978e571def36cd", building: buildingId});
+            const room2 = new Room({name: "hej", _id: "5f466e65d1978e571def3719", building: buildingId});
+            await room1.save();
+            await room2.save();
+
+            rooms = [room1.id,room2.id];
+            value = "rI d";
+            answerOptions = ["jj","hjyr"];
+
+            const res = await exec();
+
+            expect(res.statusCode).to.equal(200);
         });
 
         it('404 if roomId not found', async () => {
             rooms = [mongoose.Types.ObjectId()];
             const res = await exec();
-        expect(res.statusCode).to.equal(404);
+            expect(res.statusCode).to.equal(404);
         });
 
         it('400 if value not provided', async () => {
             value = null;
             const res = await exec();
-expect(res.statusCode).to.equal(400);
+            expect(res.statusCode).to.equal(400);
         });
 
         it("Should return 403 if user not authorized role (1)", async () => {
@@ -362,26 +378,26 @@ expect(res.statusCode).to.equal(400);
             await user.save();
 
             const res = await exec();
-expect(res.statusCode).to.equal(403);
+            expect(res.statusCode).to.equal(403);
         });
 
         it('403 if user not admin on building', async () => {
             user.adminOnBuildings = null;
             await user.save();
             const res = await exec();
-expect(res.statusCode).to.equal(403);
+            expect(res.statusCode).to.equal(403);
         });
 
         it("Should return 400 if two or more answer options were not given", async () => {
             answerOptions = null;
             const res = await exec();
-expect(res.statusCode).to.equal(400);
+            expect(res.statusCode).to.equal(400);
         });
 
         it("Should return 400 if answeroptions did not have minimum 2 elements", async () => {
             answerOptions = ["Too hot"];
             const res = await exec();
-expect(res.statusCode).to.equal(400);
+            expect(res.statusCode).to.equal(400);
         });
 
         it('should return question object with proper room id', async () => {
@@ -403,21 +419,21 @@ expect(res.statusCode).to.equal(400);
             await room2.save();
 
             await request(server)
-              .post(url)
-              .set('x-auth-token', user.generateAuthToken())
-              .send({rooms: [roomId], value: '12345', answerOptions: ["hej", "hej2"]});
+                .post(url)
+                .set('x-auth-token', user.generateAuthToken())
+                .send({rooms: [roomId], value: '12345', answerOptions: ["hej", "hej2"]});
 
             user.adminOnBuildings.push(building2.id);
             await user.save();
 
             await request(server)
-              .post(url)
-              .set('x-auth-token', user.generateAuthToken())
-              .send({rooms: [room2.id], value: '12345', answerOptions: ["hej", "hej2"]});
+                .post(url)
+                .set('x-auth-token', user.generateAuthToken())
+                .send({rooms: [room2.id], value: '12345', answerOptions: ["hej", "hej2"]});
 
             const res = await request(server)
-              .get(url)
-              .set({roomId: roomId, "x-auth-token": user.generateAuthToken(), answerOptions: ["hej", "hej2"]});
+                .get(url)
+                .set({roomId: roomId, "x-auth-token": user.generateAuthToken(), answerOptions: ["hej", "hej2"]});
 
             assert.strictEqual(res.body.length, 1);
         });
@@ -453,9 +469,9 @@ expect(res.statusCode).to.equal(400);
 
         const exec = () => {
             return request(server)
-              .patch('/api/questions/setActive/' + questionId)
-              .set({'x-auth-token': token, 'roomId': roomId})
-              .send(body);
+                .patch('/api/questions/setActive/' + questionId)
+                .set({'x-auth-token': token, 'roomId': roomId})
+                .send(body);
         };
 
         beforeEach(async () => {
@@ -496,7 +512,7 @@ expect(res.statusCode).to.equal(400);
         it("Should return 400 if isActive not provided", async () => {
             body = {};
             const res = await exec();
-expect(res.statusCode).to.equal(400);
+            expect(res.statusCode).to.equal(400);
         });
         it("Should change isActive", async () => {
             const res = await exec();
@@ -514,8 +530,8 @@ expect(res.statusCode).to.equal(400);
 
         const exec = () => {
             return request(server)
-              .delete('/api/questions/' + questionId)
-              .set({'x-auth-token': token, 'roomId': roomId});
+                .delete('/api/questions/' + questionId)
+                .set({'x-auth-token': token, 'roomId': roomId});
         };
 
         beforeEach(async () => {
@@ -595,7 +611,7 @@ expect(res.statusCode).to.equal(400);
 
             questionId = newQuestion.id;
             const res = await exec();
-expect(res.statusCode).to.equal(403);
+            expect(res.statusCode).to.equal(403);
 
         });
         it("Should delete all answers for that question", async () => {
