@@ -526,6 +526,7 @@ describe('/api/buildings', () => {
             const updatedBuilding = await Building.findById(buildingId);
             const blacklist = updatedBuilding.blacklistedDevices;
 
+            console.log(blacklist);
             expect(blacklist.length).to.equal(1);
         });
 
