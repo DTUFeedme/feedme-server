@@ -13,4 +13,10 @@ router.get('/', auth, buildingController.getBuildings);
 
 router.delete("/:id", [auth, authorized], buildingController.deleteBuilding);
 
+router.patch("/:id/addBlacklistedDevice", [auth, authorized, validId], buildingController.addBlacklistedDevice);
+
+router.patch("/:id/removeBlacklistedDevice/:deviceId", [auth, authorized, validId], buildingController.removeBlacklistedDevice);
+
+router.get("/:id/blacklistedDevices", [auth, authorized, validId], buildingController.getBlacklistedDevices);
+
 module.exports = router;

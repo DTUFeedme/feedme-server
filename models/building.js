@@ -12,6 +12,9 @@ const buildingSchema = new mongoose.Schema({
     feedback: {
         type: [mongoose.Schema.ObjectId]
     },
+    blacklistedDevices: {
+        type: [String]
+    }
 });
 
 const Building = mongoose.model('Building', buildingSchema);

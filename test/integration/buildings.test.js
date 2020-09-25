@@ -11,7 +11,7 @@ const chai = require("chai");
 const chaiAsPromised = require("chai-as-promised");
 const {Question} = require("../../models/question");
 chai.use(chaiAsPromised);
-const { v4: uuidv4 } = require('uuid');
+const {v4: uuidv4} = require('uuid');
 const expect = require("chai").expect;
 let server;
 
@@ -65,7 +65,7 @@ describe('/api/buildings', () => {
         it('401 if json token not provided in header', async () => {
             token = null;
             const res = await exec();
-        expect(res.statusCode).to.equal(401);
+            expect(res.statusCode).to.equal(401);
         });
 
         it('400 if name not provided', async () => {
@@ -424,6 +424,173 @@ describe('/api/buildings', () => {
 
             const res = await exec();
             expect(res.body[0]._id).to.equal(b1.id);
+        });
+
+    });
+
+    describe("PATCH /:buildingId/addBlacklistedDevice", () => {
+        let building;
+        let buildingId;
+        let token;
+        let deviceName;
+
+        beforeEach(async () => {
+            building = new Building({name: "324"});
+            buildingId = building.id;
+            user.adminOnBuildings = [buildingId];
+            user.role = 1;
+            token = user.generateAuthToken();
+            deviceName = "bluetoothspeaker";
+
+            await building.save();
+            await user.save();
+        });
+
+        const exec = () => {
+            return request(server)
+                .patch("/api/buildings/" + buildingId + "/addBlacklistedDevice")
+                .set("x-auth-token", token)
+                .send({deviceName});
+        };
+
+        it("Should update building with new blacklisted device", async () => {
+            await exec();
+
+            const building = await Building.findById(buildingId);
+            console.log(building);
+            const blacklistedDevices = building.blacklistedDevices;
+
+            expect(blacklistedDevices[0]).to.equal(deviceName);
+        });
+
+        it("Should return 400 if no device name provided", async () => {
+            deviceName = undefined;
+            const res = await exec();
+            expect(res.statusCode).to.equal(400);
+        });
+
+        it("Should return 403 if user was not admin on building", async () => {
+            user.adminOnBuildings = [];
+            await user.save();
+            const res = await exec();
+            expect(res.statusCode).to.equal(403);
+        });
+
+        it("Should return 404 if building wasn't found", async () => {
+            buildingId = mongoose.Types.ObjectId();
+            user.adminOnBuildings = [buildingId];
+            await user.save()
+
+            const res = await exec();
+            expect(res.statusCode).to.equal(404);
+        });
+
+    });
+
+    describe("PATCH /:buildingId/removeBlacklistedDevice/:deviceName", () => {
+        let building;
+        let buildingId;
+        let token;
+        let deviceName;
+
+        beforeEach(async () => {
+            deviceName = "bluetoothspeaker";
+            building = new Building({name: "324", blacklistedDevices: [deviceName]});
+            buildingId = building.id;
+            user.adminOnBuildings = [buildingId];
+            user.role = 1;
+            token = user.generateAuthToken();
+
+            await building.save();
+            await user.save();
+        });
+
+        const exec = () => {
+            return request(server)
+                .patch("/api/buildings/" + buildingId + "/removeBlacklistedDevice/" + deviceName)
+                .set("x-auth-token", token);
+        };
+
+        it("Should return 403 if user not authorized", async () => {
+            user.role = 0;
+            await user.save();
+            const res = await exec();
+
+            expect(res.statusCode).to.equal(403);
+        });
+
+        it("Should remove device from buildings list", async () => {
+            building.blacklistedDevices.push("heeey");
+            await building.save();
+            await exec();
+            const updatedBuilding = await Building.findById(buildingId);
+            const blacklist = updatedBuilding.blacklistedDevices;
+
+            expect(blacklist.length).to.equal(1);
+        });
+
+        it("Should return number of devices deleted", async () => {
+
+            const res = await exec();
+
+            expect(res.body.deleted).to.equal(1);
+        });
+
+        it("Should return 0 devices deleted if device was not present in building blacklist", async () => {
+            deviceName = "not-found";
+            const res = await exec();
+
+            expect(res.body.deleted).to.equal(0);
+        });
+
+        it("Should return 404 if building not found", async () => {
+            buildingId = mongoose.Types.ObjectId();
+
+            const res = await exec();
+            expect(res.statusCode).to.equal(404);
+        });
+    });
+
+    describe("GET /:buildingId/blacklistedDevices", () => {
+
+        let building;
+        let buildingId;
+        let token;
+        let deviceName;
+
+        beforeEach(async () => {
+            deviceName = "bluetoothspeaker";
+            building = new Building({name: "324", blacklistedDevices: [deviceName]});
+            buildingId = building.id;
+            user.adminOnBuildings = [buildingId];
+            user.role = 1;
+            token = user.generateAuthToken();
+
+            await building.save();
+            await user.save();
+        });
+
+        const exec = () => {
+            return request(server)
+                .get("/api/buildings/" + buildingId + "/blacklistedDevices" )
+                .set("x-auth-token", token);
+        };
+
+        it("Should return 403 if user was not admin on building ", async () => {
+            user.adminOnBuildings = [];
+
+            await user.save();
+            const res = await exec();
+
+            expect(res.statusCode).to.equal(403);
+
+        });
+
+        it("Should return list with blacklisted devices", async () => {
+            const res = await exec();
+
+            expect(res.body[0]).to.equal(deviceName);
+
         });
 
     });
