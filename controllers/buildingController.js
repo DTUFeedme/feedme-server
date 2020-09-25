@@ -127,7 +127,8 @@ const addBlacklistedDevice = async (req, res) => {
     const building = await Building.findById(buildingId);
     if (!building) return res.status(404).send(`Building with id ${buildingId} was not found`)
 
-    building.blacklistedDevices = [deviceName];
+    building.blacklistedDevices.push(deviceName);
+
     await building.save();
     res.send(building);
 };
