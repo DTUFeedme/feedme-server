@@ -2,7 +2,7 @@ const _ = require('lodash');
 const bcrypt = require("bcryptjs");
 const {User, validate, validateAuthorized} = require('../models/user');
 const StatusError = require("../errors/statusError");
-const { v4: uuidv4 } = require('uuid');
+const {v4: uuidv4} = require('uuid');
 
 
 const getUsers = async (req, res) => {
@@ -17,21 +17,20 @@ const getUsersLocation = async (req, res) => {
 
 const makeUserAdmin = async (req, res) => {
 
-    const {userId, buildingId} = req.body;
+    const {email, buildingId} = req.body;
     const user = req.user;
-    console.log('user.admin: ', user.adminOnBuildings);
 
-    if(!userId || !buildingId)
-        return res.status(400).send("Request should include userId and buildingId");
+    if (!email || !buildingId)
+        return res.status(400).send("Request should include userEmail and buildingId");
 
     if (!req.user.adminOnBuildings.find(elem => elem.toString() === buildingId))
         return res.status(403).send("User was not admin on building and can therefore not promote other users to admins");
-    let newUser = await User.findById(userId);
+    let newUser = await User.findOne({email: email});
 
     if (newUser.adminOnBuildings.includes(buildingId))
         return res.status(400).send("User was already admin on this buildilng");
 
-    newUser = await User.findOneAndUpdate({ _id: userId }, { $push: { adminOnBuildings: buildingId } }, {new: true});
+    newUser = await User.findOneAndUpdate({email: email}, {$push: {adminOnBuildings: buildingId}}, {new: true});
 
     res.send(newUser);
 };
@@ -72,7 +71,6 @@ const createUser = async (req, res) => {
 
     res.header('x-auth-token', token).send(_.pick(user, ["_id", "email", "refreshToken"]));
 };
-
 
 
 module.exports.getUsers = getUsers;

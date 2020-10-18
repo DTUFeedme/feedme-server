@@ -11,6 +11,4 @@ router.get('/location', [auth, admin], userController.getUsersLocation);
 
 router.patch('/makeBuildingAdmin', auth, userController.makeUserAdmin);
 
-
-
 module.exports = router;

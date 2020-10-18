@@ -272,7 +272,7 @@ describe('/api/users', () => {
 
     describe("PATCH /makeBuildingAdmin", () => {
         let newUser;
-        let newUserId;
+        let email;
         let buildingId;
 
         beforeEach(async () => {
@@ -287,14 +287,13 @@ describe('/api/users', () => {
 
 
             newUser = await new User({
-                email: "hej",
+                email: "hej@hej.dk",
                 password: "yo",
                 adminOnBuildings: [],
                 role: 1,
                 refreshToken: uuidv4()
             }).save();
-            newUserId = newUser.id;
-
+            email = newUser.email;
             token = user.generateAuthToken();
         });
 
@@ -303,7 +302,7 @@ describe('/api/users', () => {
                 .patch("/api/users/makeBuildingAdmin")
                 .set('x-auth-token', token)
                 .send({
-                    userId: newUserId,
+                    email: email,
                     buildingId: buildingId
                 });
         };
