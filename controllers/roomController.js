@@ -26,8 +26,11 @@ const createRoom = async (req, res) => {
 };
 const getRoomsFromBuilding = async (req, res) => {
     const buildingId = req.params.id;
-    if (!req.user.adminOnBuildings.find(elem => elem.toString() === buildingId))
+
+    const buildings = await Building.find({_id: buildingId, admins: {$all: [req.user.id]}});
+    if (buildings.length <= 0)
         return res.status(403).send("User was not admin on building with id " + buildingId);
+
     const rooms = await Room.find({building: buildingId});
     res.send(rooms);
 };
@@ -38,8 +41,9 @@ const deleteRoom = async (req, res) => {
     const room = await Room.findById(id);
     if (!room) return res.status(404).send(`Room with id ${id} was not found in database`);
 
-    if (!req.user.adminOnBuildings.find(elem => elem.toString() === room.building.toString()))
-        return res.status(403).send("User needs to be admin on room to delete it");
+    const buildings = await Building.find({_id: room.building, admins: {$all: [req.user.id]}});
+    if (buildings.length <= 0)
+        return res.status(403).send("User was not admin on building with id " + room.building);
 
     const questions = await Question.find({rooms: room.id});
 
@@ -71,15 +75,17 @@ const getRooms = async (req, res) => {
     let rooms;
     if (admin) {
         if (admin === "me") {
-            rooms = await Room.find({ building: { $in: req.user.adminOnBuildings } });
-            console.log('rooms: ', rooms);
+            const buildings = await Building.find({admins: {$all: [req.user.id]}});
+            rooms = await Room.find({ building: { $in: buildings.map(b => b.id) } });
         } else {
             if (req.user.role < 2)
                 return res.status(403).send("User should have role admin to get all rooms");
+
             const user = await User.findById(admin);
             if (!user) return res.status(404).send(`User with id ${admin} was not found`);
+            const buildings = await Building.find({admins: {$all: [user.id]}});
 
-            rooms = await Room.find({building: {$in: user.adminOnBuildings}});
+            rooms = await Room.find({ building: { $in: buildings.map(b => b.id) } });
         }
 
     } else if (feedback) {
@@ -106,8 +112,10 @@ const getRooms = async (req, res) => {
 const getUserCountFromBuilding = async (req, res) => {
     const buildingId = req.params.id;
 
-    if (!req.user.adminOnBuildings.find(elem => elem.toString() === buildingId))
+    const buildings = await Building.find({_id: buildingId, admins: {$all: [req.user.id]}});
+    if (buildings.length <= 0)
         return res.status(403).send("User was not admin on building with id " + buildingId);
+
 
     const fetchedRooms = await Room.find({building: buildingId}, "_id name userCount");
     const rooms = [];

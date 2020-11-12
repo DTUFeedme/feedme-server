@@ -14,6 +14,10 @@ const buildingSchema = new mongoose.Schema({
     },
     blacklistedDevices: {
         type: [String]
+    },
+    admins: {
+        type: [mongoose.Schema.ObjectId],
+        required: true
     }
 });
 

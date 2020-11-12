@@ -1,8 +1,8 @@
 const _ = require('lodash');
 const bcrypt = require("bcryptjs");
 const {User, validate, validateAuthorized} = require('../models/user');
-const StatusError = require("../errors/statusError");
 const {v4: uuidv4} = require('uuid');
+const {Building} = require("../models/building");
 
 
 const getUsers = async (req, res) => {
@@ -18,19 +18,23 @@ const getUsersLocation = async (req, res) => {
 const makeUserAdmin = async (req, res) => {
 
     const {email, buildingId} = req.body;
-    const user = req.user;
 
     if (!email || !buildingId)
         return res.status(400).send("Request should include userEmail and buildingId");
 
-    if (!req.user.adminOnBuildings.find(elem => elem.toString() === buildingId))
-        return res.status(403).send("User was not admin on building and can therefore not promote other users to admins");
     let newUser = await User.findOne({email: email});
 
-    if (newUser.adminOnBuildings.includes(buildingId))
-        return res.status(400).send("User was already admin on this buildilng");
 
-    newUser = await User.findOneAndUpdate({email: email}, {$push: {adminOnBuildings: buildingId}}, {new: true});
+    const updatedBuilding = await Building.findOneAndUpdate({
+        _id: buildingId,
+        admins: {$all: [req.user.id], $ne: newUser.id}
+    }, {
+        $push: {admins: newUser.id}
+    }, {new: true})
+
+
+    if (!updatedBuilding)
+        return res.status(400).send("Building could not be updated");
 
     res.send(newUser);
 };

@@ -75,12 +75,8 @@ describe('/api/buildings', () => {
         });
 
         it('should have user as admin on newly posted building', async () => {
-            assert.strictEqual(user.adminOnBuilding, undefined);
             const res = await exec();
-            const newUser = await User.findById(user._id);
-
-            expect(newUser.adminOnBuildings.find(elem => elem.toString() === res.body._id)).to.be.ok;
-            // assert.strictEqual(newUser.adminOnBuilding.toString(), res.body._id);
+            expect(res.body.admins.find(admin => admin.toString() === user.id)).to.be.ok;
         });
 
         it("should return 403 if user not authorized with login role >= 1", async () => {
@@ -98,9 +94,8 @@ describe('/api/buildings', () => {
         let token;
 
         beforeEach(async () => {
-            building = new Building({name: "324"});
+            building = new Building({name: "324", admins: [user.id]});
             buildingId = building.id;
-            user.adminOnBuildings = [buildingId];
             user.role = 1;
             await user.save();
             token = user.generateAuthToken();
@@ -190,8 +185,8 @@ describe('/api/buildings', () => {
         });
 
         it("Should return 403 if user was not admin on the building", async () => {
-            user.adminOnBuildings = [];
-            await user.save();
+            building.admins = [];
+            await building.save();
             const res = await exec();
             expect(res.statusCode).to.equal(403);
         });
@@ -273,11 +268,10 @@ describe('/api/buildings', () => {
         let query;
 
         beforeEach(async () => {
-            building = new Building({name: "324"});
+            building = new Building({name: "324", admins: [user.id]});
             buildingId = building.id;
             room = new Room({name: "hej", location: "hej", building: buildingId});
             roomId = room.id;
-            user.adminOnBuildings = [buildingId];
             token = user.generateAuthToken();
 
             query = "";
@@ -312,14 +306,12 @@ describe('/api/buildings', () => {
         it("Should only return buildings that requesting user is admin on when query set", async () => {
             query = "?admin=me";
 
-            const b1 = await new Building({name: "hej"}).save();
-            const b2 = await new Building({name: "hej"}).save();
-            user.adminOnBuildings = [b1.id, b2.id];
-
-            await user.save();
+            await new Building({name: "hej", admins: [user.id]}).save();
+            await new Building({name: "hej", admins: [user.id]}).save();
+            await new Building({name: "hej", admins: [user.id]}).save();
 
             const res = await exec();
-            expect(res.body.length).is.equal(2);
+            expect(res.body.length).is.equal(4);
         });
 
         it("Should return 403 if user was not admin but tried to get all buildings", async () => {
@@ -357,7 +349,6 @@ describe('/api/buildings', () => {
         });
 
         it("Should return buildings where another user has given feedback ", async () => {
-
 
             const building = await new Building({name: "hej"}).save();
             const room = await new Room({
@@ -408,15 +399,14 @@ describe('/api/buildings', () => {
         it("Should get building from another admin when proper query parsed", async () => {
             user.role = 2;
 
-            const b1 = await new Building({name: "hej"}).save();
-            const b2 = await new Building({name: "hej"}).save();
-
             const newUser = await new User({
                 email: "q@q",
                 password: "qweQWE123",
-                adminOnBuildings: [b1.id, b2.id],
                 refreshToken: uuidv4()
             }).save();
+
+            const b1 = await new Building({name: "hej", admins: [newUser.id]}).save();
+            const b2 = await new Building({name: "hej", admins: [newUser.id]}).save();
 
             query = "?admin=" + newUser.id;
             token = user.generateAuthToken();
@@ -435,9 +425,9 @@ describe('/api/buildings', () => {
         let deviceName;
 
         beforeEach(async () => {
-            building = new Building({name: "324"});
+            building = new Building({name: "324", admins: [user.id]});
             buildingId = building.id;
-            user.adminOnBuildings = [buildingId];
+
             user.role = 1;
             token = user.generateAuthToken();
             deviceName = "bluetoothspeaker";
@@ -470,7 +460,8 @@ describe('/api/buildings', () => {
         });
 
         it("Should return 403 if user was not admin on building", async () => {
-            user.adminOnBuildings = [];
+            building.admins = [];
+            await building.save();
             await user.save();
             const res = await exec();
             expect(res.statusCode).to.equal(403);
@@ -478,8 +469,6 @@ describe('/api/buildings', () => {
 
         it("Should return 404 if building wasn't found", async () => {
             buildingId = mongoose.Types.ObjectId();
-            user.adminOnBuildings = [buildingId];
-            await user.save()
 
             const res = await exec();
             expect(res.statusCode).to.equal(404);
@@ -497,7 +486,8 @@ describe('/api/buildings', () => {
             deviceName = "bluetoothspeaker";
             building = new Building({name: "324", blacklistedDevices: [deviceName]});
             buildingId = building.id;
-            user.adminOnBuildings = [buildingId];
+            building.admins = [user.id];
+            // user.adminOnBuildings = [buildingId];
             user.role = 1;
             token = user.generateAuthToken();
 
@@ -526,7 +516,6 @@ describe('/api/buildings', () => {
             const updatedBuilding = await Building.findById(buildingId);
             const blacklist = updatedBuilding.blacklistedDevices;
 
-            console.log(blacklist);
             expect(blacklist.length).to.equal(1);
         });
 
@@ -561,9 +550,8 @@ describe('/api/buildings', () => {
 
         beforeEach(async () => {
             deviceName = "bluetoothspeaker";
-            building = new Building({name: "324", blacklistedDevices: [deviceName]});
+            building = new Building({name: "324", blacklistedDevices: [deviceName], admins: [user.id]});
             buildingId = building.id;
-            user.adminOnBuildings = [buildingId];
             user.role = 1;
             token = user.generateAuthToken();
 
@@ -573,14 +561,13 @@ describe('/api/buildings', () => {
 
         const exec = () => {
             return request(server)
-                .get("/api/buildings/" + buildingId + "/blacklistedDevices" )
+                .get("/api/buildings/" + buildingId + "/blacklistedDevices")
                 .set("x-auth-token", token);
         };
 
         it("Should return 403 if user was not admin on building ", async () => {
-            user.adminOnBuildings = [];
-
-            await user.save();
+            building.admins = [];
+            await building.save();
             const res = await exec();
 
             expect(res.statusCode).to.equal(403);

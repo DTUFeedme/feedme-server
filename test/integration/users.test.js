@@ -273,23 +273,23 @@ describe('/api/users', () => {
     describe("PATCH /makeBuildingAdmin", () => {
         let newUser;
         let email;
+        let building;
         let buildingId;
 
         beforeEach(async () => {
-            buildingId = mongoose.Types.ObjectId();
             user = await new User({
                 email: "hej",
                 password: "yo",
-                adminOnBuildings: [buildingId],
                 role: 1,
                 refreshToken: uuidv4()
             }).save();
+            building = await new Building({name: "324", admins: [user.id]}).save();
 
+            buildingId = building.id;
 
             newUser = await new User({
                 email: "hej@hej.dk",
                 password: "yo",
-                adminOnBuildings: [],
                 role: 1,
                 refreshToken: uuidv4()
             }).save();
@@ -302,17 +302,17 @@ describe('/api/users', () => {
                 .patch("/api/users/makeBuildingAdmin")
                 .set('x-auth-token', token)
                 .send({
-                    email: email,
-                    buildingId: buildingId
+                    email,
+                    buildingId
                 });
         };
 
-        it("Should return 403 if user was not admin on building", async () => {
-            user.adminOnBuildings = [];
-            await user.save();
+        it("Should return 400 if user was not admin on building", async () => {
+            building.admins = [];
+            await building.save();
 
             const res = await exec();
-            expect(res.statusCode).to.equal(403);
+            expect(res.statusCode).to.equal(400);
         });
 
         it("Should return 401 if no token provided", async () => {
@@ -321,9 +321,10 @@ describe('/api/users', () => {
             expect(res.statusCode).to.equal(401);
         });
 
-        it("Should return updated user with adminOnBuildings updated", async () => {
-            const res = await exec();
-            expect(res.body.adminOnBuildings[0]).to.equal(user.adminOnBuildings[0].toString());
+        it("Should update building with user admin", async () => {
+            await exec();
+            const newBuilding = await Building.findById(building.id);
+            expect(newBuilding.admins[0].toString()).to.equal(user.id);
         });
 
         it("Should not be allowed to make user admin who is already an admin", async () => {

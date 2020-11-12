@@ -32,10 +32,8 @@ router.post('/', [auth], async (req, res) => {
         if (!building) return res.status(404).send('Building with id ' + room.building + ' was not found.');
         if (!tempBuilding) {
             tempBuilding = building;
-            if (user.role !== 2 && (!user.adminOnBuildings ||
-              !user.adminOnBuildings.find(elem => elem.toString() === building._id.toString()))) {
+            if (user.role < 2 && !tempBuilding.admins.find(admin => admin.toString() === user.id))
                 return res.status(403).send('Admin rights on the building are required to post new questions');
-            }
         } else if (tempBuilding.id !== building.id) {
             return res.status(400).send('Questions were posted in rooms of different buildings, which is not allowed');
         }
@@ -64,7 +62,7 @@ router.get('/', auth, async (req, res) => {
     const query = req.query;
     const user = req.user;
 
-    
+
     const roomId = req.header('roomId');
     if (!roomId) return res.status(400).send('No room id provided');
 
@@ -92,14 +90,14 @@ router.get('/', auth, async (req, res) => {
         }
     }
     //if (query.notAnswered) { TODO: Should be implemented when implememnted in app
-        // console.log(questions.length);
-        // questions = questions.filter(q => {
-        //     for (let userId of q.usersAnswered) {
-        //         if (user._id.toString() === userId.toString())
-        //             return false;
-        //     }
-        //     return true;
-        // });
+    // console.log(questions.length);
+    // questions = questions.filter(q => {
+    //     for (let userId of q.usersAnswered) {
+    //         if (user._id.toString() === userId.toString())
+    //             return false;
+    //     }
+    //     return true;
+    // });
     //}
 
     res.send(questions);

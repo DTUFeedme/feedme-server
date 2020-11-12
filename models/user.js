@@ -13,9 +13,6 @@ const userSchema = new mongoose.Schema({
         minLength: 3,
         maxLength: 1024
     },
-    adminOnBuildings: {
-        type: [mongoose.Schema.ObjectId]
-    },
     role: {
         type: Number,
         min: 0,

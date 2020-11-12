@@ -62,8 +62,8 @@ describe('/api/signalMaps', () => {
 
             await building.save();
 
-            user.adminOnBuildings.push(building.id);
-            await user.save();
+            building.admins = [user.id];
+            await building.save();
 
 
             buildingId = building.id;
@@ -426,17 +426,13 @@ describe('/api/signalMaps', () => {
         });
 
         it("Should return 403 if user was not admin on building where signalmap is posted", async () => {
-            user.adminOnBuildings = [];
-            token = user.generateAuthToken();
-            await user.save();
+            building.admins = [];
+            await building.save();
 
             const res = await exec();
             expect(res.statusCode).to.equal(403);
         });
 
-        it("Should take all signal maps with the same room id into account when estimating room", async () => {
-
-        });
 
         it("Should merge if two signalMaps was posted to same room", async () => {
             const room2 = await new Room({
@@ -647,6 +643,8 @@ describe('/api/signalMaps', () => {
 
     describe(" DELETE /room/:roomId", () => {
         let roomId;
+        let building;
+
         const exec = () => {
             return request(server)
                 .delete('/api/signalMaps/room/' + roomId)
@@ -657,12 +655,13 @@ describe('/api/signalMaps', () => {
             signals = [40];
 
             beaconName = "random name";
-            buildingId = mongoose.Types.ObjectId();
-            user.adminOnBuildings.push(buildingId);
+
+            building = await new Building({name: "324", admins: [user.id]}).save();
+
 
             const room = new Room({
                 name: "222",
-                building: buildingId
+                building: building.id
             });
             await room.save();
 
@@ -700,9 +699,8 @@ describe('/api/signalMaps', () => {
         });
 
         it("Should return 403 if user was not building admin", async () => {
-            user.adminOnBuildings = [];
-            token = user.generateAuthToken();
-            await user.save();
+            building.admins = [];
+            await building.save();
 
             const res = await exec();
             expect(res.statusCode).to.equal(403);

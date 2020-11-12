@@ -271,10 +271,9 @@ describe('/api/questions', () => {
 
         beforeEach(async () => {
             value = '12345';
-            building = new Building({name: value});
+            building = new Building({name: value, admins: [user.id]});
             await building.save();
             buildingId = building._id;
-            user.adminOnBuildings.push(building.id);
             const room = new Room({name: '222', location: "123", building: buildingId});
             await room.save();
             roomId = room._id;
@@ -329,10 +328,10 @@ describe('/api/questions', () => {
         it("400 if question posted in rooms of different buildings", async () => {
 
             const building = await new Building({
-                name: "heej"
+                name: "heej",
+                admins: [user.id]
             }).save();
 
-            user.adminOnBuildings.push(building.id);
             user.role = 1;
             token = user.generateAuthToken();
             await user.save();
@@ -382,8 +381,8 @@ describe('/api/questions', () => {
         });
 
         it('403 if user not admin on building', async () => {
-            user.adminOnBuildings = null;
-            await user.save();
+            building.admins = [];
+            await  building.save();
             const res = await exec();
             expect(res.statusCode).to.equal(403);
         });
@@ -408,8 +407,6 @@ describe('/api/questions', () => {
         it('should only return 1 length array when posted question for two different rooms', async () => {
             const building2 = new Building({name: '12345'});
             await building2.save();
-            user.adminOnBuildings.push(building.id);
-            await user.save();
 
             const room2 = new Room({
                 building: building2._id,
@@ -423,8 +420,8 @@ describe('/api/questions', () => {
                 .set('x-auth-token', user.generateAuthToken())
                 .send({rooms: [roomId], value: '12345', answerOptions: ["hej", "hej2"]});
 
-            user.adminOnBuildings.push(building2.id);
-            await user.save();
+            building2.admins = [user.id];
+            await building2.save();
 
             await request(server)
                 .post(url)
@@ -535,7 +532,7 @@ describe('/api/questions', () => {
         };
 
         beforeEach(async () => {
-            building = new Building({name: '12345'});
+            building = new Building({name: '12345', admins: [user.id]});
             await building.save();
             buildingId = building._id;
 
@@ -547,7 +544,7 @@ describe('/api/questions', () => {
 
             await room.save();
             roomId = room._id;
-            user.adminOnBuildings = [buildingId];
+
             token = user.generateAuthToken();
             await user.save();
 

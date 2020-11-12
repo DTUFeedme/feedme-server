@@ -1,5 +1,6 @@
 const {SignalMap, validate, roomTypeEstimation} = require("../models/signalMap");
 const {Room} = require("../models/room");
+const {Building} = require("../models/building");
 
 const createSignalMap = async (req, res) => {
     const {error} = validate(req.body);
@@ -33,7 +34,8 @@ const createSignalMap = async (req, res) => {
         room = await Room.findById(roomId);
         if (!room) return res.status(400).send(`Room with id ${roomId} was not found`);
 
-        if (!req.user.adminOnBuildings.find(elem => room.building.toString() === elem.toString()))
+        const building = await Building.findOne({_id: room.building, admins: {$all: [req.user.id]}});
+        if (!building)
             return res.status(403).send("User was not admin on building containing room " + roomId);
     }
     let signalMap = new SignalMap({
@@ -76,7 +78,8 @@ const deleteFromRoom = async (req, res) => {
     if (!room)
         return res.status(400).send(`Room with id ${roomId} was not found`);
 
-    if (!user.adminOnBuildings.includes(room.building))
+    const building = await Building.findOne({_id: room.building, admins: {$all: [user.id]}});
+    if (!building)
         return res.status(403).send(`Building admin rights is required to delete a signal map from room`);
 
     const result = await SignalMap.deleteMany({room: roomId});

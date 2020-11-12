@@ -124,12 +124,10 @@ describe('/api/rooms', () => {
         let token;
 
         beforeEach(async () => {
-            building = new Building({name: '324'});
+            building = new Building({name: '324', admins: [user.id]});
             buildingId = building.id;
             room = new Room({name: "222", location: "123", building: building._id});
             let room2 = new Room({name: "221", location: "456", building: mongoose.Types.ObjectId()});
-            user.adminOnBuildings = [buildingId];
-            await user.save();
             token = user.generateAuthToken();
             await building.save();
             await room.save();
@@ -147,10 +145,17 @@ describe('/api/rooms', () => {
             expect(res.body.length).to.equal(1);
         });
 
+        it("Should also work with multiple users being admin on one building", async () => {
+            building.admins.push(mongoose.Types.ObjectId());
+            await building.save();
+            const res = await exec();
+            expect(res.body.length).to.equal(1);
+        });
+
 
         it("Should return 403 if user was not admin on building", async () => {
-            user.adminOnBuildings = [];
-            await user.save();
+            building.admins = [];
+            await building.save();
             const res = await exec();
             expect(res.statusCode).to.equal(403);
         });
@@ -206,14 +211,14 @@ describe('/api/rooms', () => {
 
         it("Should only return rooms, that another user is admin on", async () => {
             user.role = 2;
-            const newBuildingId = mongoose.Types.ObjectId();
-            room = await new Room({name: "222", location: "123", building: newBuildingId}).save();
+            // const newBuildingId = mongoose.Types.ObjectId();
             const newUser = await new User({
                 email: "w@w",
                 password: "yo",
-                adminOnBuildings: [newBuildingId],
                 refreshToken: uuidv4()
             }).save();
+            const newBuilding = await new Building({name: "heey", admins: [newUser.id]}).save();
+            room = await new Room({name: "222", location: "123", building: newBuilding.id}).save();
 
             query = "?admin=" + newUser.id;
             const res = await exec();
@@ -237,8 +242,8 @@ describe('/api/rooms', () => {
         });
 
         it("Should only return rooms where user is admin if query admin=me parsed", async () => {
-            user.adminOnBuildings = [building.id];
-            await user.save();
+            building.admins = [user.id];
+            await building.save();
             await new Room({
                 name: "222",
                 location: "123",
@@ -278,11 +283,10 @@ describe('/api/rooms', () => {
         };
 
         beforeEach(async () => {
-            const building = new Building({name: '324'});
+            const building = new Building({name: '324', admins: [user.id]});
             buildingId = building.id;
             room = new Room({name: "222", location: "123", building: building._id});
             let room2 = new Room({name: "221", location: "456", building: mongoose.Types.ObjectId()});
-            user.adminOnBuildings = [buildingId];
             user.currentRoom = room.id;
             user.roomLastUpdated = new Date();
             await user.save();
@@ -359,16 +363,19 @@ describe('/api/rooms', () => {
     describe("DELETE /:id", () => {
         let roomId;
         let token;
+        let building;
 
         beforeEach(async () => {
+            building = await new Building({name: "hey", admins: [user.id]}).save();
             const room = await new Room({
                 name: "324",
-                building: mongoose.Types.ObjectId()
+                building: building.id
             }).save();
             roomId = room.id;
             user.role = 1;
-            user.adminOnBuildings.push(room.building);
+
             await user.save();
+
             token = user.generateAuthToken();
 
         });
@@ -385,8 +392,8 @@ describe('/api/rooms', () => {
         });
 
         it("403 if user was not admin on building where room exists", async () => {
-            user.adminOnBuildings = [];
-            await user.save();
+            building.admins = [];
+            await building.save();
             token = user.generateAuthToken();
             const res = await exec();
             expect(res.statusCode).to.equal(403);

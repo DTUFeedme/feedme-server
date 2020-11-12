@@ -8,10 +8,14 @@ const _ = require('lodash');
 const deleteBuilding = async (req, res) => {
     const id = req.params.id;
 
-    if (!req.user.adminOnBuildings.find(elem => elem.toString() === id.toString()))
+
+    const building = await Building.findById(id);
+
+    if (!building.admins.find(admin => admin.toString() === req.user.id))
         return res.status(403).send("User needs to be admin on building to delete it");
 
-    const building = await Building.findByIdAndDelete(id);
+    await building.delete();
+    // const building = await Building.findByIdAndDelete(id);
     const rooms = await Room.find({building: id});
     for (let i = 0; i < rooms.length; i++) {
         await Question.deleteMany({rooms: rooms[i].id});
@@ -53,17 +57,16 @@ const getBuildings = async (req, res) => {
 
     let buildings;
     if (admin === "me") {
-        buildings = await Building.find({_id: {$in: user.adminOnBuildings}});
+        buildings = await Building.find({admins: {$all: [user.id]}});
     } else if (admin) {
         if (user.role < 2) return res.status(403).send("User did not have authorized role (admin)" +
             " to view buildings of other admins");
 
         const adminUser = await User.findById(admin);
-        buildings = await Building.find({_id: {$in: adminUser.adminOnBuildings}});
+        buildings = await Building.find({admins: {$all: [adminUser.id]}});
     } else if (!admin && !feedback) {
         if (user.role < 2) return res.status(403).send("User did not have authorized role (admin)" +
             " to view all buildings. Please specify query to only receive specific buildings");
-
         buildings = await Building.find();
     } else if (feedback) {
         let givenFeedback;
@@ -102,15 +105,11 @@ const createBuilding = async (req, res) => {
     let {name} = req.body;
     const user = req.user;
 
-    const admin = await User.findById(user._id);
-    if (!admin) return res.status(401).send(`User with id ${userId} is not authorized in system`);
-
     const building = new Building({
-        name
+        name,
+        admins: [user.id]
     });
 
-    admin.adminOnBuildings.push(building._id);
-    await admin.save();
     await building.save();
     res.send(building);
 };
@@ -121,11 +120,12 @@ const addBlacklistedDevice = async (req, res) => {
 
     const buildingId = req.params.id;
 
-    if (!req.user.adminOnBuildings.find(elem => elem.toString() === buildingId.toString()))
-        return res.status(403).send("User needs to be admin on building to delete it");
-
     const building = await Building.findById(buildingId);
     if (!building) return res.status(404).send(`Building with id ${buildingId} was not found`)
+
+    if (!building.admins.find(admin => admin.toString() === req.user.id))
+        return res.status(403).send("User needs to be admin on building to delete it");
+
 
     building.blacklistedDevices.push(deviceName);
 
@@ -142,7 +142,7 @@ const removeBlacklistedDevice = async (req, res) => {
 
     const deviceIdx = building.blacklistedDevices.indexOf(deviceName);
 
-    if (!req.user.adminOnBuildings.find(elem => elem.toString() === buildingId.toString()))
+    if (!building.admins.find(admin => admin.toString() === req.user.id))
         return res.status(403).send("User needs to be admin on building to delete it");
 
     let devicesDeleted = 0;
@@ -158,11 +158,11 @@ const removeBlacklistedDevice = async (req, res) => {
 const getBlacklistedDevices = async (req, res) => {
     const buildingId = req.params.id;
 
-    if (!req.user.adminOnBuildings.find(elem => elem.toString() === buildingId.toString()))
-        return res.status(403).send("User needs to be admin on building to delete it");
-
     const building = await Building.findById(buildingId);
     if (!building) return res.status(404).send(`Building with id ${buildingId} was not found`);
+
+    if (!building.admins.find(admin => admin.toString() === req.user.id))
+        return res.status(403).send("User needs to be admin on building to delete it");
 
     return res.send(building.blacklistedDevices);
 };
