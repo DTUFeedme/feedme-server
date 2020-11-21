@@ -26,24 +26,26 @@ var signalmaps = db.signalmaps.find();
 
 signalmaps.forEach(sm => {
 
-
     let signalLength = sm.beacons[0].signals.length;
+
     for (let i = 0; i < sm.beacons.length; i++) {
-        if (sm.beacons[i].signals.length !== signalLength){
+        // if (sm.beacons[i].signals.length !== signalLength){
             if (sm.room){
-                let rooms = db.rooms.find({_id: sm.room});
-                let buildings = db.buildings.find({_id: rooms[0].building});
-                print(buildings[0].name);
-                print(sm._id);
-                print(rooms[0].name);
-                print(rooms[0].building);
-                print(sm._id);
-                print(sm.beacons[i].name);
-                print(sm.beacons[i]._id);
-                print("ERROR!!! signal length was different");
-                print("")
+                // let room = db.rooms.findOne({_id: sm.room});
+                // let buildings = db.buildings.findOne({_id: room.building});
+                // print(buildings[0].name);
+                // print(sm._id);
+                // print(room.name);
+                // print(room.building);
+                // print(sm._id);
+                // print(sm.beacons[i].name);
+                // print(sm.beacons[i]._id);
+                // print("ERROR!!! signal length was different");
+                // print("")
+            } else {
+                print("no room");
             }
-        }
+        // }
         // printjson(sm.beacons[i]);
     }
     // sm.beacons.forEach(b => {
