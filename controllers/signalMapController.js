@@ -1,6 +1,7 @@
 const {SignalMap, validate, roomTypeEstimation} = require("../models/signalMap");
 const {Room} = require("../models/room");
 const {Building} = require("../models/building");
+const {Beacon} = require("../models/beacon");
 
 const createSignalMap = async (req, res) => {
     const {error} = validate(req.body);
@@ -13,15 +14,27 @@ const createSignalMap = async (req, res) => {
     let room;
     let certainty;
     if (!roomId) {
+        const serverBeacons = await Beacon.find({name: {$in: beacons.map(b => b.name)}});
+        if (serverBeacons.length <= 0)
+            return res.status(400).send("No server beacons were found matching the beacon names in the signal map");
+
+        const uniqueBuildingIds = new Set();
+        serverBeacons.forEach(sb => uniqueBuildingIds.add(sb.building.toString()));
+
+        if (uniqueBuildingIds.size > 1)
+            return res.status(400).send("beacons from more than one building were posted");
+
+        const rooms = await Room.find({building: uniqueBuildingIds.values().next().value});
 
         let signalMaps = await SignalMap.find({
             isActive: true,
+            room: {$in: rooms.map(r => r.id)},
         });
 
         if (signalMaps.length <= 0) return res.status(400).send("Unable to find any active signalMaps " +
             "in current building");
 
-        roomEstimation = await roomTypeEstimation(beacons, signalMaps, 3);
+        roomEstimation = await roomTypeEstimation(beacons, signalMaps, 3, serverBeacons.map(sb => sb.name));
 
         room = await Room.findById(roomEstimation.type);
         certainty = roomEstimation.certainty;
@@ -37,6 +50,15 @@ const createSignalMap = async (req, res) => {
         const building = await Building.findOne({_id: room.building, admins: {$all: [req.user.id]}});
         if (!building)
             return res.status(403).send("User was not admin on building containing room " + roomId);
+
+        for (let i = 0; i < beacons.length; i++) {
+            const beacon = await Beacon.findOne({name: beacons[i].name});
+            if (!beacon)
+                await new Beacon({name: beacons[i].name, building: building.id}).save();
+            else if (building.id !== beacon.building)
+                return res.status(400).send(`Beacon with name ${beacon.name} was already posted in different building with id ${beacon.building}`);
+        }
+
     }
     let signalMap = new SignalMap({
         room: roomId || roomEstimation.type,

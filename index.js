@@ -12,6 +12,7 @@ const rooms = require('./routes/rooms');
 const general = require('./routes/general');
 const questions = require('./routes/questions');
 const buildings = require('./routes/buildings');
+const beacons = require('./routes/beacons');
 const auth = require('./routes/auth');
 const signalMaps = require('./routes/signalMaps');
 const error = require('./middleware/error');
@@ -101,6 +102,7 @@ app.use(baseUrl + 'buildings', buildings);
 app.use(baseUrl + 'auth', auth);
 app.use(baseUrl + 'signalMaps', signalMaps);
 app.use(baseUrl + 'general', general);
+app.use(baseUrl + 'beacons', beacons);
 app.use(error);
 
 module.exports = app;
