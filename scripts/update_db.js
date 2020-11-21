@@ -32,6 +32,8 @@ signalmaps.forEach(sm => {
         if (sm.beacons[i].signals.length !== signalLength){
             if (sm.room){
                 let rooms = db.rooms.find({_id: sm.room});
+                let buildings = db.buildings.find({_id: rooms[0].building});
+                print(buildings[0].name);
                 print(sm._id);
                 print(rooms[0].name);
                 print(rooms[0].building);
