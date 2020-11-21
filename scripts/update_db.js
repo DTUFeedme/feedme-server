@@ -28,6 +28,9 @@ signalmaps.forEach(sm => {
 
     let signalLength = sm.beacons[0].signals.length;
     print(sm.room);
+    if (!sm.room){
+        print("hey");
+    }
 
     for (let i = 0; i < sm.beacons.length; i++) {
         // if (sm.beacons[i].signals.length !== signalLength){
