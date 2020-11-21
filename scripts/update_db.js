@@ -1,4 +1,4 @@
-var db = connect('127.0.0.1:27017/feedme');
+var db = connect('127.0.0.1:27017/feedme-dev');
 
 // const users = db.users.find({});
 // console.log(users);
