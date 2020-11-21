@@ -25,13 +25,14 @@ var signalmaps = db.signalmaps.find();
 // feedme on server: 5da41e00c525af695b69a72e
 buildings.forEach(b => {
     if (b._id.toString() !== "ObjectId(\"5da41e00c525af695b69a72e\")"){
+        print(b.name);
         // db.buildings.remove({_id: b._id});
         var rooms = db.rooms.find({building: b._id});
         rooms.forEach(r => {
             // db.rooms.remove({_id: r._id});
             var questions = db.questions.find({rooms: {$all: [r._id]}});
             questions.forEach(q => {
-                printjson(q);
+                // printjson(q);
             });
             // printjson(questions);
         });
