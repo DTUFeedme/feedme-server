@@ -1,4 +1,4 @@
-var db = connect('127.0.0.1:27017/feedme-dev');
+var db = connect('127.0.0.1:27017/feedme');
 
 // const users = db.users.find({});
 // console.log(users);
@@ -24,13 +24,12 @@ var signalmaps = db.signalmaps.find();
 // });
 
 signalmaps.forEach(sm => {
+    print(sm._id);
     let signalLength = sm.beacons[0].signals.length;
-    print(signalLength);
     for (let i = 0; i < sm.beacons.length; i++) {
         if (sm.beacons[i].signals.length !== signalLength){
+            print(sm.beacons[i]._id);
             print("ERROR!!! signal length was different");
-        } else {
-            print("Good");
         }
         // printjson(sm.beacons[i]);
     }
