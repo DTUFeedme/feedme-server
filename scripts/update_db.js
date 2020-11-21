@@ -24,7 +24,7 @@ var signalmaps = db.signalmaps.find();
 // });
 // feedme on server: 5da41e00c525af695b69a72e
 buildings.forEach(b => {
-    if (b._id.toString() !== "ObjectId(\"5fb2bd412d89029dcaac9c8f\")"){
+    if (b._id.toString() !== "ObjectId(\"5da41e00c525af695b69a72e\")"){
         // db.buildings.remove({_id: b._id});
         var rooms = db.rooms.find({building: b._id});
         rooms.forEach(r => {
