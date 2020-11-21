@@ -1,4 +1,4 @@
-var db = connect('127.0.0.1:27017/feedme');
+var db = connect('127.0.0.1:27017/feedme-dev');
 
 // const users = db.users.find({});
 // console.log(users);
@@ -22,19 +22,31 @@ var signalmaps = db.signalmaps.find();
 //         db.users.updateOne({_id: user._id}, {$unset: {adminOnBuildings: ""}});
 //     }
 // });
+// feedme on server: 5da41e00c525af695b69a72e
+buildings.forEach(b => {
+    if (b._id.toString() !== "ObjectId(\"5fb2bd412d89029dcaac9c8f\")"){
+        // db.buildings.remove({_id: b._id});
+        var rooms = db.rooms.find({building: b._id});
+        rooms.forEach(r => {
+            // db.rooms.remove({_id: r._id});
+            var questions = db.questions.find({rooms: {$in: r._id}});
+            printjson(questions);
+        });
+        // print("hey");
+    }
 
+});
 
 signalmaps.forEach(sm => {
 
     let signalLength = sm.beacons[0].signals.length;
-    print(sm.room);
-    if (!sm.room){
-        print("hey");
-    }
+    // print(sm.room);
 
     for (let i = 0; i < sm.beacons.length; i++) {
+
+
         // if (sm.beacons[i].signals.length !== signalLength){
-            if (sm.room){
+
                 // let room = db.rooms.findOne({_id: sm.room});
                 // let buildings = db.buildings.findOne({_id: room.building});
                 // print(buildings[0].name);
@@ -46,9 +58,6 @@ signalmaps.forEach(sm => {
                 // print(sm.beacons[i]._id);
                 // print("ERROR!!! signal length was different");
                 // print("")
-            } else {
-                print("no room");
-            }
         // }
         // printjson(sm.beacons[i]);
     }
