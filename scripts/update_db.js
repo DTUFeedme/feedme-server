@@ -29,7 +29,7 @@ buildings.forEach(b => {
         var rooms = db.rooms.find({building: b._id});
         rooms.forEach(r => {
             // db.rooms.remove({_id: r._id});
-            var questions = db.questions.find({rooms: {$in: r._id}});
+            var questions = db.questions.find({rooms: {$all: [r._id]}});
             questions.forEach(q => {
                 printjson(q);
             });
