@@ -277,6 +277,18 @@ describe('/api/signalMaps', () => {
             expect(res.statusCode).to.equal(400);
         });
 
+        it("Should update previous signalmaps if new beacons are added", async () => {
+            const res = await exec();
+            const b = new Beacon({name: "newBeacon", building: buildingId})
+            beacons = [{name: b.name, signal: -30}];
+            await exec();
+
+            const updatedSignalMap = await SignalMap.findById(res.body._id);
+
+            expect(updatedSignalMap.beacons.length).to.equal(2);
+            expect(updatedSignalMap.beacons[1].signal).to.equal(-100);
+        });
+
         it("Should estimate room if roomId not provided ", async () => {
             await new Beacon({name: beaconName, building: building.id}).save();
 
@@ -519,20 +531,53 @@ describe('/api/signalMaps', () => {
             expect(res.body.room._id).to.equal(sm.room._id.toString());
         });
 
-        it("Should return 400 if signalmap with beacons from two different buildings was posted", async () => {
+        it("Should add proper padding if beacons from two different buildings were posted", async () => {
             await new Beacon({name: beaconName, building: building.id}).save();
             const otherBuilding = await new Building({name: "324"}).save();
             const otherBeacon = await new Beacon({name: "beaconName2", building: otherBuilding.id}).save();
             await new SignalMap({
                 room: roomId,
-                beacons: [{name: beaconName, signal: -39}],
+                beacons: [{name: beaconName, signal: -80}],
+                isActive: true
+            }).save();
+            const roomFromOtherBuilding = await new Room({name: "otherRoom", building: otherBuilding.id}).save();
+
+            await new SignalMap({
+                room: roomFromOtherBuilding.id,
+                beacons: [{name: otherBeacon.name, signal: -20}],
                 isActive: true
             }).save();
 
-            beacons = [{name: beaconName, signal: -40}, {name: otherBeacon.name, signal: -60}];
+            beacons = [{name: beaconName, signal: -80}, {name: otherBeacon.name, signal: -20}];
             roomId = undefined;
             const res = await exec();
-            expect(res.statusCode).to.equal(400);
+            expect(res.body.room._id).to.equal(roomFromOtherBuilding.id);
+        });
+
+        it("Should properly add padding according to list of beacons from server", async () => {
+            await new Beacon({name: beaconName, building: buildingId}).save();
+            await new Beacon({name: "beaconName2", building: buildingId}).save();
+            await new SignalMap({
+                room: roomId,
+                beacons: [{name: beaconName, signal: -80}, {name: "beaconName2", signal: -20}],
+                isActive: true
+            }).save();
+
+            const room2 = await new Room({name: "room2", building: buildingId}).save();
+
+            await new SignalMap({
+                room: room2.id,
+                beacons: [{name: beaconName, signal: -90}, {name: "beaconName2", signal: -90}],
+                isActive: true
+            }).save();
+
+            // Even though this signalmap fits exactly with first signalmap it should match with second because of padding.
+            beacons = [{name: beaconName, signal: -80}];
+            roomId = undefined;
+
+            const res = await exec();
+
+            expect(res.body.room._id).to.equal(room2.id);
         });
 
         it("Should return 400 if signalmap with only unkown beacons was sent by client", async () => {
@@ -712,6 +757,7 @@ describe('/api/signalMaps', () => {
     describe(" DELETE /room/:roomId", () => {
         let roomId;
         let building;
+        let beacon;
 
         const exec = () => {
             return request(server)
@@ -724,7 +770,9 @@ describe('/api/signalMaps', () => {
 
             beaconName = "random name";
 
+
             building = await new Building({name: "324", admins: [user.id]}).save();
+            beacon = await new Beacon({name: beaconName, building: building.id}).save();
 
 
             const room = new Room({
@@ -797,6 +845,16 @@ describe('/api/signalMaps', () => {
             await exec();
             const foundSignalMap = await SignalMap.findById(signalMap.id);
             expect(foundSignalMap).to.be.ok;
+        });
+
+        it("Should delete beacons if there are no more references to that beacon", async () => {
+            const beaconWithRef = await new Beacon({name: "hey", building: building.id}).save();
+            const otherRoom = await new Room({name: "hey", building: building.id}).save();
+            await new SignalMap({room: otherRoom.id, beacons: [{name: beaconWithRef.name, signal: -20}]}).save();
+
+            await exec();
+            const beacons = await Beacon.find();
+            expect(beacons.length).to.equal(1);
 
         });
     });
