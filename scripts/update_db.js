@@ -23,12 +23,15 @@ var signalmaps = db.signalmaps.find();
 //     }
 // });
 
+
 signalmaps.forEach(sm => {
+
 
     let signalLength = sm.beacons[0].signals.length;
     for (let i = 0; i < sm.beacons.length; i++) {
         if (sm.beacons[i].signals.length !== signalLength){
             print(sm._id);
+            print(sm.beacons[i].name);
             print(sm.beacons[i]._id);
             print("ERROR!!! signal length was different");
             print("")
