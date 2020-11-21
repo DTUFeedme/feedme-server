@@ -30,7 +30,10 @@ buildings.forEach(b => {
         rooms.forEach(r => {
             // db.rooms.remove({_id: r._id});
             var questions = db.questions.find({rooms: {$in: r._id}});
-            printjson(questions);
+            questions.forEach(q => {
+                printjson(q);
+            });
+            // printjson(questions);
         });
         // print("hey");
     }
