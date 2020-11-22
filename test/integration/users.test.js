@@ -154,13 +154,23 @@ describe('/api/users', () => {
             expect(updatedUser.currentRoom).to.equal(roomId);
         });
 
-        it("Should only be allowed if user is an admin", async () => {
+        it("Should not be allowed if user is not admin or Davide", async () => {
             user.role = 1;
             token = user.generateAuthToken();
+            user.email = "not@davide.dk";
             await user.save();
 
             const res = await exec();
             expect(res.statusCode).to.equal(403);
+        });
+
+        it("Should be allowed if user has email adress of davide", async () => {
+            user.role = 1;
+            user.email = "dcal@dtu.dk";
+            await user.save();
+
+            const res = await exec();
+            expect(res.statusCode).to.equal(200);
         });
     });
 
