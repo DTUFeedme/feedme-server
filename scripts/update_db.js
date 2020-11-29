@@ -84,6 +84,11 @@ signalmaps.forEach(sm => {
                 print("ERROR WITH SM " + sm._id + " from building "+ room.building);
                 return;
             }
+            let beacon = db.beacons.findOne({name: sm.beacons[j].name});
+            if (!beacon) {
+                let room = db.rooms.findOne({_id: sm.room});
+                db.beacons.insert({name: sm.beacons[j].name, building: room.building});
+            }
             newSm.beacons.push({name: sm.beacons[j].name, signal: sm.beacons[j].signals[i]});
         }
 
