@@ -1,6 +1,7 @@
 const {SignalMap, validate, roomTypeEstimation} = require("../models/signalMap");
 const {Room} = require("../models/room");
 const {Building} = require("../models/building");
+const {Beacon} = require("../models/beacon");
 
 const createSignalMap = async (req, res) => {
     const {error} = validate(req.body);
@@ -13,15 +14,23 @@ const createSignalMap = async (req, res) => {
     let room;
     let certainty;
     if (!roomId) {
+        const serverBeacons = await Beacon.find({name: {$in: beacons.map(b => b.name)}});
+        const filteredBeacons = await Beacon.find({building: {$in: serverBeacons.map(b => b.building)}});
+
+        if (serverBeacons.length <= 0)
+            return res.status(400).send("No server beacons were found matching the beacon names in the signal map");
+
+        const rooms = await Room.find({building: {$in: filteredBeacons.map(fb => fb.building)}});
 
         let signalMaps = await SignalMap.find({
             isActive: true,
+            room: {$in: rooms.map(r => r.id)},
         });
 
         if (signalMaps.length <= 0) return res.status(400).send("Unable to find any active signalMaps " +
             "in current building");
 
-        roomEstimation = await roomTypeEstimation(beacons, signalMaps, 3);
+        roomEstimation = await roomTypeEstimation(beacons, signalMaps, 3, filteredBeacons.map(sb => sb.name));
 
         room = await Room.findById(roomEstimation.type);
         certainty = roomEstimation.certainty;
@@ -29,7 +38,7 @@ const createSignalMap = async (req, res) => {
         user.roomLastUpdated = new Date();
         user.currentRoom = room.id;
         await user.save();
-    } else if (req.user.role < 2) {
+    } else {
         if (req.user.role < 1) return res.status(403).send("User should be authorized to post active signalmaps");
         room = await Room.findById(roomId);
         if (!room) return res.status(400).send(`Room with id ${roomId} was not found`);
@@ -37,6 +46,29 @@ const createSignalMap = async (req, res) => {
         const building = await Building.findOne({_id: room.building, admins: {$all: [req.user.id]}});
         if (!building)
             return res.status(403).send("User was not admin on building containing room " + roomId);
+
+        for (let i = 0; i < beacons.length; i++) {
+            const beacon = await Beacon.findOne({name: beacons[i].name});
+            if (!beacon) {
+                await new Beacon({name: beacons[i].name, building: building.id}).save();
+
+                const rooms = await Room.find({building: building.id});
+
+                // Updates all signalmaps to include new beacon with signal value -100
+                await SignalMap.updateMany({room: {$in: rooms.map(r => r.id)}}, {
+                    $push: {
+                        beacons: {
+                            name: beacons[i].name,
+                            signal: -100
+                        }
+                    }
+                });
+
+            } else if (building.id !== beacon.building)
+                return res.status(400).send(`Beacon with name ${beacon.name} was already posted in different building with id ${beacon.building}`);
+        }
+
+
     }
     let signalMap = new SignalMap({
         room: roomId || roomEstimation.type,
@@ -83,6 +115,17 @@ const deleteFromRoom = async (req, res) => {
         return res.status(403).send(`Building admin rights is required to delete a signal map from room`);
 
     const result = await SignalMap.deleteMany({room: roomId});
+
+    const signalMaps = await SignalMap.find();
+
+    // Building set with all beacons with reference from signalMaps.
+    const beaconsWithReferences = new Set();
+    signalMaps.forEach(sm => {
+        sm.beacons.forEach(b => beaconsWithReferences.add(b.name));
+    });
+    // Then deleting all beacons not in the set
+    await Beacon.deleteMany({name: {$nin: Array.from(beaconsWithReferences)}});
+
     res.send(result);
 };
 

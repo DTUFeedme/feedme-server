@@ -1,6 +1,7 @@
 const {User} = require('../../models/user');
 const {SignalMap} = require('../../models/signalMap');
 const {Building} = require('../../models/building');
+const {Beacon} = require('../../models/beacon');
 const {Room} = require('../../models/room');
 const request = require('supertest');
 let assert = require('assert');
@@ -41,6 +42,7 @@ describe('/api/users', () => {
         await SignalMap.deleteMany();
         await Room.deleteMany();
         await Building.deleteMany();
+        await Beacon.deleteMany();
     });
 
     describe("GET /", () => {
@@ -136,12 +138,14 @@ describe('/api/users', () => {
         });
 
         it("Should update user's location after posting signalmap", async () => {
-            await new SignalMap({beacons: [{name: beaconName, signals: [-10]}], room: roomId, isActive: true}).save();
+            await new Beacon({name: beaconName, building: buildingId}).save();
+            await new Beacon({name: "hej", building: buildingId}).save();
+            await new SignalMap({beacons: [{name: beaconName, signal: -10}], room: roomId, isActive: true}).save();
 
             user.currentRoom = undefined;
             await user.save();
             await request(server).post("/api/signalmaps/" ).set("x-auth-token", token).send({
-                beacons: [{name: "hej", signals: [-10]}],
+                beacons: [{name: "hej", signal: -10}],
             });
 
             const res = await exec();
@@ -150,13 +154,23 @@ describe('/api/users', () => {
             expect(updatedUser.currentRoom).to.equal(roomId);
         });
 
-        it("Should only be allowed if user is an admin", async () => {
+        it("Should not be allowed if user is not admin or Davide", async () => {
             user.role = 1;
             token = user.generateAuthToken();
+            user.email = "not@davide.dk";
             await user.save();
 
             const res = await exec();
             expect(res.statusCode).to.equal(403);
+        });
+
+        it("Should be allowed if user has email adress of davide", async () => {
+            user.role = 1;
+            user.email = "dcal@dtu.dk";
+            await user.save();
+
+            const res = await exec();
+            expect(res.statusCode).to.equal(200);
         });
     });
 
