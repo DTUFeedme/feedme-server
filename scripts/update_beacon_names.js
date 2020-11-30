@@ -8,9 +8,14 @@ beaconNameMap = {
 }
 
 beacons.forEach(b => {
-    if (beaconNameMap[b.name]) {
+    const newName = beaconNameMap[b.name];
+
+    if (newName) {
         print("exists");
     } else {
         print("hmm");
+    }
+    if (!beaconNameMap["hej"]){
+        print("wow");
     }
 });
