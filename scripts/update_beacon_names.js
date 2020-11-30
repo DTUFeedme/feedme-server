@@ -11,7 +11,8 @@ beacons.forEach(b => {
     const newName = beaconNameMap[b.name];
 
     if (newName) {
-        db.beacons.update({_id: b._id}, {name: newName});
+        print("updated beacon from " + b.name + " to " + newName);
+        db.beacons.update({_id: b._id}, {$set: {name: newName}});
     } else {
         print("Couldn't find beacon with name " + b.name);
     }
@@ -31,6 +32,10 @@ signalMaps.forEach(sm => {
         }
     });
 
-    db.signalmaps.update({_id: sm._id}, {beacons: []});
+    db.signalmaps.update({_id: sm._id}, {
+        $set: {
+            beacons
+        },
+    });
 
 });
