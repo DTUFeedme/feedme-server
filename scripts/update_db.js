@@ -92,7 +92,7 @@ signalmaps.forEach(sm => {
                 // return;
             }
             print("yo");
-
+            printjson(sm.beacons[j]);
             let beacon = db.beacons.findOne({name: sm.beacons[j].name});
             if (!beacon) {
                 let room = db.rooms.findOne({_id: sm.room});
