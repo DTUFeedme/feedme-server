@@ -285,10 +285,10 @@ describe('/api/rooms', () => {
         beforeEach(async () => {
             const building = new Building({name: '324', admins: [user.id]});
             buildingId = building.id;
-            room = new Room({name: "222", location: "123", building: building._id});
-            let room2 = new Room({name: "221", location: "456", building: mongoose.Types.ObjectId()});
-            user.currentRoom = room.id;
-            user.roomLastUpdated = new Date();
+            room = new Room({name: "222", building: building._id});
+            let room2 = new Room({name: "221", building: mongoose.Types.ObjectId()});
+            user.locations = [{room: room.id, updatedAt: new Date()}];
+
             await user.save();
 
             token = user.generateAuthToken();
@@ -318,8 +318,8 @@ describe('/api/rooms', () => {
         });
 
         it("Should update userCount if more users have set their currentRoom", async () => {
-            const user2 = new User({currentRoom: room.id, roomLastUpdated: new Date(), refreshToken: uuidv4()});
-            const user3 = new User({currentRoom: room.id, roomLastUpdated: new Date(), refreshToken: uuidv4()});
+            const user2 = new User({locations: [{room: room.id, updatedAt: new Date()}], refreshToken: uuidv4()});
+            const user3 = new User({locations: [{room: room.id, updatedAt: new Date()}], refreshToken: uuidv4()});
 
             await user2.save();
             await user3.save();
@@ -342,7 +342,7 @@ describe('/api/rooms', () => {
         it("Should count users who have updated their room within the last half hour", async () => {
             const oldDate = new Date();
             oldDate.setMinutes(oldDate.getMinutes() - 29);
-            const user2 = new User({currentRoom: room.id, roomLastUpdated: oldDate, refreshToken: uuidv4()});
+            const user2 = new User({locations: [{room: room.id, updatedAt: oldDate}], refreshToken: uuidv4()});
             await user2.save();
             const res = await exec();
             const newRoom = res.body[0];

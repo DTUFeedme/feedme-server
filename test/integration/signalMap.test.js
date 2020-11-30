@@ -158,6 +158,59 @@ describe('/api/signalMaps', () => {
             expect(res.body.room._id).to.equal(roomId.toString());
         });
 
+        it("Should update user's location ", async () => {
+            await exec();
+            beacons = [{name: "hey", signal: -42}]
+            await exec();
+            roomId = undefined;
+            await exec();
+            await exec();
+            const updatedUser = await User.findById(user.id);
+            expect(updatedUser.locations.length).to.equal(2);
+        });
+
+        it("Should sort the user's locations from oldest to newest", async () => {
+            let maxLength = 1000;
+            let locations = [];
+            let newRoom = mongoose.Types.ObjectId();
+            let newDate = new Date();
+            for (let i = 0; i < maxLength; i++) {
+                locations.push({
+                    room: newRoom,
+                    updatedAt: newDate
+                })
+            }
+            user.locations = locations;
+            await user.save();
+
+            await exec();
+            roomId = undefined;
+            await exec();
+
+            const updatedUser = await User.findById(user.id);
+            expect(updatedUser.locations[maxLength - 1].room.toString()).to.equal(room.id.toString());
+        });
+
+        it("Should only keep the latest 1000 locations of the user", async () => {
+            const locations = [];
+            const maxLength = 1000
+
+            for (let i = 0; i < maxLength; i++) {
+                locations.push({
+                    room: mongoose.Types.ObjectId(),
+                    updatedAt: new Date()
+                })
+            }
+            user.locations = locations;
+            await exec();
+            await user.save();
+            roomId = undefined;
+            await exec();
+
+            const updatedUser = await User.findById(user.id);
+            expect(updatedUser.locations.length).to.equal(maxLength)
+        });
+
         it("Should return 400 if one of the beacons doesn't exist in the system", async () => {
             beacons = [{
                 beaconId: mongoose.Types.ObjectId(),
@@ -200,7 +253,7 @@ describe('/api/signalMaps', () => {
             const now = new Date();
             await exec();
             const updatedUser = await User.findById(user.id);
-            expect(updatedUser.roomLastUpdated).to.be.at.least(now);
+            expect(updatedUser.locations[updatedUser.locations.length -1 ].updatedAt).to.be.at.least(now);
         });
 
         it("Should set currentRoom to correct room after room estimation", async () => {
@@ -217,7 +270,7 @@ describe('/api/signalMaps', () => {
             roomId = undefined;
             await exec();
             const updatedUser = await User.findById(user.id);
-            expect(updatedUser.currentRoom.toString()).to.equal(signalMap.room.toString());
+            expect(updatedUser.locations[updatedUser.locations.length -1 ].room.toString()).to.equal(signalMap.room.toString());
         });
 
         it("Should report back certainty percentage", async () => {

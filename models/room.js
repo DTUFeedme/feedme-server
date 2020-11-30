@@ -8,12 +8,6 @@ const roomSchema = new mongoose.Schema({
         minLength: 1,
         maxLength: 255
     },
-    /*location: {
-        type: String,
-        required: true,
-        minLength: 1,
-        maxLength: 1024
-    },*/
     certainty: {
         type: Number,
     },

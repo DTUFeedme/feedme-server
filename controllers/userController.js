@@ -13,7 +13,7 @@ const getUsers = async (req, res) => {
 const getUsersLocation = async (req, res) => {
     if (req.user.role < 2 && req.user.email !== "dcal@dtu.dk")
         return res.status(403).send("Admin rights are required to get user location");
-    const users = await User.find(null, "_id currentRoom roomLastUpdated");
+    const users = await User.find(null, "_id locations");
     res.send(users);
 };
 

@@ -35,9 +35,19 @@ const createSignalMap = async (req, res) => {
         room = await Room.findById(roomEstimation.type);
         certainty = roomEstimation.certainty;
         const user = req.user;
-        user.roomLastUpdated = new Date();
-        user.currentRoom = room.id;
-        await user.save();
+        const location = {
+            room: room.id,
+            updatedAt: new Date()
+        }
+        if (user.locations.length === 1000){
+            user.locations[0] = location;
+            user.locations.sort((l1, l2) => l1.updatedAt - l2.updatedAt);
+            await user.save();
+        } else {
+            user.locations.push(location)
+            await user.save();
+        }
+
     } else {
         if (req.user.role < 1) return res.status(403).send("User should be authorized to post active signalmaps");
         room = await Room.findById(roomId);

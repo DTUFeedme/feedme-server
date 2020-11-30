@@ -52,7 +52,6 @@ const deleteRoom = async (req, res) => {
             await questions[i].remove();
         } else {
             const index = questions[i].rooms.findIndex(elem => elem.toString() === room.id);
-            console.log('index: ', index);
             questions[i].rooms.splice(index, 1);
             await questions[i].save();
         }
@@ -69,14 +68,14 @@ const deleteRoom = async (req, res) => {
 };
 
 const getRooms = async (req, res) => {
-    const { admin, feedback } = req.query;
+    const {admin, feedback} = req.query;
 
 
     let rooms;
     if (admin) {
         if (admin === "me") {
             const buildings = await Building.find({admins: {$all: [req.user.id]}});
-            rooms = await Room.find({ building: { $in: buildings.map(b => b.id) } });
+            rooms = await Room.find({building: {$in: buildings.map(b => b.id)}});
         } else {
             if (req.user.role < 2)
                 return res.status(403).send("User should have role admin to get all rooms");
@@ -85,7 +84,7 @@ const getRooms = async (req, res) => {
             if (!user) return res.status(404).send(`User with id ${admin} was not found`);
             const buildings = await Building.find({admins: {$all: [user.id]}});
 
-            rooms = await Room.find({ building: { $in: buildings.map(b => b.id) } });
+            rooms = await Room.find({building: {$in: buildings.map(b => b.id)}});
         }
 
     } else if (feedback) {
@@ -117,18 +116,22 @@ const getUserCountFromBuilding = async (req, res) => {
         return res.status(403).send("User was not admin on building with id " + buildingId);
 
 
-    const fetchedRooms = await Room.find({building: buildingId}, "_id name userCount");
+    const fetchedRooms = await Room.find({building: buildingId}, "_id name");
     const rooms = [];
 
     for (let i = 0; i < fetchedRooms.length; i++) {
         const {_id, name} = fetchedRooms[i];
         const oldDate = new Date();
         oldDate.setMinutes(oldDate.getMinutes() - 30);
-        const userCount = await User.countDocuments({
-            currentRoom: _id, roomLastUpdated: {
-                $gt: oldDate
-            }
+
+
+        const users = await User.find();
+        let userCount = 0;
+        users.forEach(u => {
+            if (u.locations.length > 0 && u.locations[u.locations.length - 1].updatedAt > oldDate)
+                userCount++
         });
+
 
         rooms.push({
             _id,

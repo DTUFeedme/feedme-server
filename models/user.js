@@ -25,13 +25,19 @@ const userSchema = new mongoose.Schema({
         required: true,
         validate: /^[a-zA-Z\d]{8}-[a-zA-Z\d]{4}-[a-zA-Z\d]{4}-[a-zA-Z\d]{4}-[a-zA-Z\d]{12}$/
     },
-    currentRoom: {
-        type: mongoose.Types.ObjectId,
-        ref: "Room",
+    locations: {
+        type: [{
+            room: {
+                type: mongoose.Types.ObjectId,
+                ref: "Room",
+                required: true
+            },
+            updatedAt: {
+                type: Date,
+                required: true
+            }
+        }]
     },
-    roomLastUpdated: {
-        type: Date,
-    }
 }, {timestamps: {createdAt: false, updatedAt: true}});
 
 userSchema.methods.generateAuthToken = function (timeNow) {

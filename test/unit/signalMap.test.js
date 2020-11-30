@@ -99,8 +99,6 @@ describe('Location estimation algorithm', () => {
 
         it("Should also work with reversed order", () => {
             signalMaps = [signalMap3, signalMap2, signalMap1];
-            console.log(signalMaps.map(sm => sm.room));
-            console.log(beaconNames);
             const roomEstimation = exec();
             expect(roomEstimation.type.toString()).to.equal(signalMap1.room.toString());
         });
@@ -167,7 +165,6 @@ describe('Location estimation algorithm', () => {
             };
 
             signalMaps.push(signalMap3);
-            // console.log(signalMaps);
 
             // should find 3 points. the closest point to room A, but the two others point to room B.
             // Should therefore estimate the room to be room B

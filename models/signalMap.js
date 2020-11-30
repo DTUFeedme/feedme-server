@@ -14,7 +14,8 @@ const signalMapSchema = new mongoose.Schema({
                 type: Number,
                 required: true
             }
-        }]
+        }],
+        required: true
     },
     room: {
         type: mongoose.Types.ObjectId,
@@ -105,7 +106,6 @@ function roomEstimation(clientBeacons, signalMaps, k, alignedBeaconNames) {
     const initialPoints = [];
     for (let i = 0; i < signalMaps.length; i++) {
         const alignedServerBeacons = alignAndFillArrays(alignedBeaconNames, signalMaps[i].beacons);
-        // console.log(alignedServerBeacons);
         const vector = [];
 
         for (let l = 0; l < alignedServerBeacons.length; l++) {
