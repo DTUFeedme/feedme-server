@@ -92,7 +92,7 @@ signalmaps.forEach(sm => {
                 // return;
             }
             print("yo");
-            printjson(sm.beacons[j]);
+            // printjson(sm.beacons[j]);
             if (!sm.beacons[j].name){
                 if (!sm.beacons[j]._id){
                     print("wtf");
