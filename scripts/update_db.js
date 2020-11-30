@@ -80,6 +80,8 @@ signalmaps.forEach(sm => {
         for (let j = 0; j < sm.beacons.length; j++) {
 
             if (sm.beacons[j].signals.length !== signalLength) {
+                print(sm.beacons[j].signals.length);
+                print(signalLength);
                 var room = db.rooms.findOne({_id: sm.room});
                 print("ERROR WITH SM " + sm._id + " from building "+ room.building);
                 // return;
