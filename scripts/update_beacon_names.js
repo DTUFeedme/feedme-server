@@ -13,6 +13,6 @@ beacons.forEach(b => {
     if (newName) {
         db.beacons.update({_id: b._id}, {name: newName});
     } else {
-        print("hmm");
+        print("Couldn't find beacon with name " + b.name);
     }
 });
