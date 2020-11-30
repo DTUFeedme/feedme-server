@@ -12,7 +12,7 @@ var signalmaps = db.signalmaps.find();
 buildings.forEach(b => {
 
     // if (b._id.toString() !== "ObjectId(\"5da41e00c525af695b69a72e\")") {
-    if (b._id.toString() !== "ObjectId(\"5db746c4d4449b0aa6b77e69s\")") {
+    if (b._id.toString() !== "ObjectId(\"5f37fcdae47d4e070d85aa83\")") {
 
         db.buildings.remove({_id: b._id});
         print("removed building with name " + b.name);
