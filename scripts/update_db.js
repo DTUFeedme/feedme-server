@@ -69,7 +69,7 @@ let smInserted = 0;
 let smRemoved = 0;
 signalmaps.forEach(sm => {
     let signalLength = sm.beacons[0].signals.length;
-    print("removed sm " + smRemoved);
+    // print("removed sm " + smRemoved);
     smRemoved++;
     // db.signalmaps.remove({_id: sm._id});
 
@@ -83,7 +83,6 @@ signalmaps.forEach(sm => {
 
         for (let j = 0; j < sm.beacons.length; j++) {
 
-            print("hey");
             if (sm.beacons[j].signals.length !== signalLength) {
                 print(sm.beacons[j].signals.length);
                 print(signalLength);
@@ -91,7 +90,6 @@ signalmaps.forEach(sm => {
                 print("ERROR WITH SM " + sm._id + " from building " + room.building);
                 // return;
             }
-            print("yo");
             // printjson(sm.beacons[j]);
             if (!sm.beacons[j].name){
                 if (!sm.beacons[j]._id){
@@ -106,11 +104,10 @@ signalmaps.forEach(sm => {
                 let room = db.rooms.findOne({_id: sm.room});
                 // db.beacons.insert({name: sm.beacons[j].name, building: room.building});
             }
-            print("what");
             newSm.beacons.push({name: sm.beacons[j].name, signal: sm.beacons[j].signals[i]});
         }
 
-        print("inserted " + smInserted);
+        // print("inserted " + smInserted);
         smInserted++;
         // db.signalmaps.insert(newSm);
     }
