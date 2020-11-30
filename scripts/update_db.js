@@ -93,9 +93,15 @@ signalmaps.forEach(sm => {
             }
             print("yo");
             printjson(sm.beacons[j]);
+            if (!sm.beacons[j].name){
+                if (!sm.beacons[j]._id){
+                    print("wtf");
+                } else {
+
+                }
+            }
 
             let beacon = db.beacons.findOne({name: sm.beacons[j].name});
-            print("heeey");
             if (!beacon) {
                 let room = db.rooms.findOne({_id: sm.room});
                 // db.beacons.insert({name: sm.beacons[j].name, building: room.building});
