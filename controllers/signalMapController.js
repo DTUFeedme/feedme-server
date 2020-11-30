@@ -22,6 +22,7 @@ const createSignalMap = async (req, res) => {
 
         const rooms = await Room.find({building: {$in: filteredBeacons.map(fb => fb.building)}});
 
+
         let signalMaps = await SignalMap.find({
             isActive: true,
             room: {$in: rooms.map(r => r.id)},

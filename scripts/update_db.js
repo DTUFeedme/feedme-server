@@ -1,4 +1,4 @@
-var db = connect('127.0.0.1:27017/feedme-dev');
+var db = connect('127.0.0.1:27017/feedme');
 
 var users = db.users.find({});
 var buildings = db.buildings.find();
@@ -10,9 +10,8 @@ var signalmaps = db.signalmaps.find();
 // Removing all buildings except for 5da41e00c525af695b69a72e,
 // and all rooms, signalmaps, questions and feedback belonging to those buildings
 buildings.forEach(b => {
-
-    // if (b._id.toString() !== "ObjectId(\"5da41e00c525af695b69a72e\")") {
-    if (b._id.toString() !== "ObjectId(\"5f37fcdae47d4e070d85aa83\")") {
+    if (b._id.toString() !== "ObjectId(\"5da41e00c525af695b69a72e\")") {
+    // if (b._id.toString() !== "ObjectId(\"5f37fcdae47d4e070d85aa83\")") {
 
         db.buildings.remove({_id: b._id});
         print("removed building with name " + b.name);
