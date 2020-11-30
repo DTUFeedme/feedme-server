@@ -71,7 +71,7 @@ signalmaps.forEach(sm => {
     let signalLength = sm.beacons[0].signals.length;
     print("removed sm " + smRemoved);
     smRemoved++;
-    db.signalmaps.remove({_id: sm._id});
+    // db.signalmaps.remove({_id: sm._id});
 
 
     for (let i = 0; i < sm.beacons[0].signals.length; i++) {
