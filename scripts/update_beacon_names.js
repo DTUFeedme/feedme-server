@@ -11,11 +11,8 @@ beacons.forEach(b => {
     const newName = beaconNameMap[b.name];
 
     if (newName) {
-        print("exists");
+        db.beacons.updateOne({_id: b._id}, {name: newName});
     } else {
         print("hmm");
-    }
-    if (!beaconNameMap["hej"]){
-        print("wow");
     }
 });
