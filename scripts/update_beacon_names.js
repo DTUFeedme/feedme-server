@@ -1,4 +1,4 @@
-var db = connect('127.0.0.1:27017/feedme-dev');
+var db = connect('127.0.0.1:27017/feedme-dev-backup');
 
 const signalMaps = db.signalmaps.find();
 const beacons = db.beacons.find();
@@ -15,4 +15,22 @@ beacons.forEach(b => {
     } else {
         print("Couldn't find beacon with name " + b.name);
     }
+});
+
+signalMaps.forEach(sm => {
+    const beacons = []
+    sm.beacons.forEach(b => {
+        const newName = beaconNameMap[b.name];
+
+        if (newName) {
+            print("updated beacon with name " + b.name + " to " + newName);
+            beacons.push({signal: b.signal, name: newName});
+        } else {
+            print("Couldn't find beacon with name " + b.name);
+            beacons.push({signal: b.signal, name: b.name});
+        }
+    });
+
+    db.signalmaps.update({_id: sm._id}, {beacons: []});
+
 });

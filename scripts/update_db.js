@@ -1,4 +1,4 @@
-var db = connect('127.0.0.1:27017/feedme-dev');
+var db = connect('127.0.0.1:27017/feedme-dev-backup');
 
 var users = db.users.find({});
 var buildings = db.buildings.find();
