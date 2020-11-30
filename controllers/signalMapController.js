@@ -74,7 +74,7 @@ const createSignalMap = async (req, res) => {
                     }
                 });
 
-            } else if (building.id !== beacon.building)
+            } else if (building.id !== beacon.building.toString())
                 return res.status(400).send(`Beacon with name ${beacon.name} was already posted in different building with id ${beacon.building}`);
         }
 
