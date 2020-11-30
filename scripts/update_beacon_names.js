@@ -1,4 +1,4 @@
-var db = connect('127.0.0.1:27017/feedme-dev-backup');
+var db = connect('127.0.0.1:27017/feedme-backup-dev');
 
 const signalMaps = db.signalmaps.find();
 const beacons = db.beacons.find();
