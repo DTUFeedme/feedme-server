@@ -29,14 +29,10 @@ beacons.forEach(b => {
     let foundBeacon = false;
     signalMaps.forEach(sm => {
         let foundBInSm = false;
-        if (sm.beacons.length === 0) {
-            print("wait")
-            return;
-        }
 
         sm.beacons.forEach(beacon => {
-            if (foundBInSm)
-                return;
+            // if (foundBInSm)
+            //     return;
 
             if (beacon._id.toString() === b._id.toString()){
                 print("Found " + beacon._id.toString());
