@@ -124,7 +124,7 @@ signalmaps.forEach(sm => {
             if (beacon.name === "7ZGI"){
                 print("avoiding " + beacon.name);
             } else {
-
+                print("not avoiding");
             }
             newSm.beacons.push({name: bNewName, signal: sm.beacons[j].signals[i]});
         }
