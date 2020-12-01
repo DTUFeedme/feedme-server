@@ -113,22 +113,19 @@ signalmaps.forEach(sm => {
 
             let beacon = db.beacons.findOne({_id: sm.beacons[j]._id});
 
-            if (!beacon)
-                print("wtf");
-
             let bNewName = beaconNameMap[beacon.name]
-            if (!bNewName)
-                print("wait")
+
 
             // if (!beacon) {
             //     let room = db.rooms.findOne({_id: sm.room});
             //     // db.beacons.insert({name: sm.beacons[j].name, building: room.building});
             // }
-            newSm.beacons.push({name: sm.beacons[j].name, signal: sm.beacons[j].signals[i]});
+            newSm.beacons.push({name: bNewName, signal: sm.beacons[j].signals[i]});
         }
 
         // print("inserted " + smInserted);
         smInserted++;
+        printjson(newSm)
         // db.signalmaps.insert(newSm);
     }
 });
