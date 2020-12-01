@@ -102,6 +102,8 @@ signalmaps.forEach(sm => {
         }
 
         for (let j = 0; j < sm.beacons.length; j++) {
+            if (sm.beacons[j]._id.toString() === )
+
 
             if (sm.beacons[j].signals.length !== signalLength) {
                 print(sm.beacons[j].signals.length);
@@ -120,12 +122,16 @@ signalmaps.forEach(sm => {
             //     let room = db.rooms.findOne({_id: sm.room});
             //     // db.beacons.insert({name: sm.beacons[j].name, building: room.building});
             // }
+            if (beacon.name === "7ZGI"){
+                print("avoiding " + beacon.name)
+            } else {
+
+            }
             newSm.beacons.push({name: bNewName, signal: sm.beacons[j].signals[i]});
         }
 
         // print("inserted " + smInserted);
         smInserted++;
-        printjson(newSm)
         // db.signalmaps.insert(newSm);
     }
 });
