@@ -30,7 +30,10 @@ beacons.forEach(b => {
     signalMaps.forEach(sm => {
 
         sm.beacons.forEach(beacon => {
-            print(beacon._id.toString());
+
+
+            print(beacon._id.toString() + " " + b._id.toString());
+
             // if (foundBInSm)
             //     return;
 
