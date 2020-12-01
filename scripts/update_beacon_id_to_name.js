@@ -32,22 +32,20 @@ beacons.forEach(b => {
     const sms = db.signalmaps.find();
 
     sms.forEach(sm => {
+        let foundBInSm = false;
 
         sm.beacons.forEach(beacon => {
-
-
-            print(beacon._id.toString() + " " + b._id.toString());
-
-            // if (foundBInSm)
-            //     return;
+            if (foundBInSm)
+                return;
 
             if (beacon._id.toString() === b._id.toString()){
                 print("Found " + beacon._id.toString());
                 foundBeacon = true;
+                foundBInSm = true;
             }
         });
-        // if (!foundBInSm)
-        //     print("beacon " + b._id.toString() + " not found in sm " + sm._id.toString());
+        if (!foundBInSm)
+            print("beacon " + b._id.toString() + " not found in sm " + sm._id.toString());
     });
 
 
