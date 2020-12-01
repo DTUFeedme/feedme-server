@@ -26,10 +26,12 @@ beaconNameMap = {
 }
 
 beacons.forEach(b => {
-    print("what " + b._id.toString() + " signalMaps"  + signalMaps.length);
+    // print("what " + b._id.toString() + " signalMaps"  + signalMaps.length);
     let foundBeacon = false;
 
-    signalMaps.forEach(sm => {
+    const sms = db.signalmaps.find();
+
+    sms.forEach(sm => {
 
         sm.beacons.forEach(beacon => {
 
