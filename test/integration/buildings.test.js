@@ -447,7 +447,6 @@ describe('/api/buildings', () => {
             await exec();
 
             const building = await Building.findById(buildingId);
-            console.log(building);
             const blacklistedDevices = building.blacklistedDevices;
 
             expect(blacklistedDevices[0]).to.equal(deviceName);

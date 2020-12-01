@@ -236,7 +236,6 @@ describe('/api/auth', () => {
         it("Should give 401 if user has been inactive over a month", async () => {
             user.role = 2;
             const date = new Date();
-            console.log(date);
             date.setMonth(date.getMonth() - 1);
             user.updatedAt = date;
             await user.save({timestamps: false});
@@ -248,7 +247,6 @@ describe('/api/auth', () => {
         it("Should be ok if user was active less than one month ago", async () => {
             user.role = 1;
             const date = new Date();
-            console.log(date);
             date.setMonth(date.getMonth() - 1); // 1 month ago
             date.setMinutes(date.getMinutes() + 1);
             user.updatedAt = date;
@@ -261,7 +259,6 @@ describe('/api/auth', () => {
         it("Should not return 401 if user role was 0", async () => {
             user.role = 0;
             const date = new Date();
-            console.log(date);
             date.setMonth(date.getMonth() - 3); // 3 months ago
             user.updatedAt = date;
             await user.save({timestamps: false});

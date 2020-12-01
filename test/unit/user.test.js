@@ -117,7 +117,6 @@ describe("User", () => {
             const user = new User();
             let token = user.generateAuthToken(fakeTime);
 
-            console.log(token);
             expect(() => {
                 const decoded = jwt.verify(token, privateKey);
             }).to.throw(Error);
@@ -130,7 +129,6 @@ describe("User", () => {
 
             const user = new User();
             let token = user.generateAuthToken(fakeTime);
-            console.log(token);
 
             const decoded = jwt.verify(token, privateKey);
             expect(decoded).to.be.ok;

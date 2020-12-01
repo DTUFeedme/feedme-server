@@ -170,7 +170,6 @@ describe("KNN algorithm manager", () => {
             };
 
             const res = exec();
-            console.log(res);
 
             expect(res.filter(elem => elem.type === initialPoints[0].type).length).to.equal(1);
             expect(res.filter(elem => elem.type === initialPoints[1].type).length).to.equal(1);
@@ -248,7 +247,6 @@ describe("KNN algorithm manager", () => {
         });
 
         it("Should return the point type with minimal distances if the nearest points have different types", () => {
-            console.log("initial type", initialPoints[1].type);
             const closestPoint = initialPoints[1].type;
             const typeEstimation = exec();
             expect(typeEstimation.type).to.equal(closestPoint);

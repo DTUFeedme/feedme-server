@@ -32,11 +32,11 @@ describe('Location estimation algorithm', () => {
 
             k = 3;
             registeredBeacons = [{
-                name: mongoose.Types.ObjectId(),
-                signals: [20]
+                name: "beaconName1",
+                signal: 20
             }, {
-                name: mongoose.Types.ObjectId(),
-                signals: [10]
+                name: "beaconName2",
+                signal: 10
             }];
 
 
@@ -44,11 +44,11 @@ describe('Location estimation algorithm', () => {
                 beacons: [
                     {
                         name: registeredBeacons[0].name,
-                        signals: [19, 21]
+                        signal: 20
                     },
                     {
                         name: registeredBeacons[1].name,
-                        signals: [9, 11]
+                        signal: 10
                     }
                 ],
                 room: mongoose.Types.ObjectId()
@@ -58,11 +58,11 @@ describe('Location estimation algorithm', () => {
                 beacons: [
                     {
                         name: registeredBeacons[0].name,
-                        signals: [50, 55]
+                        signal: 52.5
                     },
                     {
                         name: registeredBeacons[1].name,
-                        signals: [1, 2]
+                        signal: 1.5
                     }
                 ],
                 room: mongoose.Types.ObjectId()
@@ -72,11 +72,11 @@ describe('Location estimation algorithm', () => {
                 beacons: [
                     {
                         name: registeredBeacons[0].name,
-                        signals: [100, 102]
+                        signal: 101
                     },
                     {
                         name: registeredBeacons[1].name,
-                        signals: [300, 302]
+                        signal: 301
                     }
                 ],
                 room: mongoose.Types.ObjectId()
@@ -108,11 +108,11 @@ describe('Location estimation algorithm', () => {
                 beacons: [
                     {
                         name: registeredBeacons[0].name,
-                        signals: [18, 22]
+                        signals: 20
                     },
                     {
                         name: registeredBeacons[1].name,
-                        signals: [8, 12]
+                        signals: 11
                     }
                 ],
                 room: mongoose.Types.ObjectId()
@@ -127,11 +127,11 @@ describe('Location estimation algorithm', () => {
 
             signalMap1.beacons.push({
                 name: registeredBeacons[0].name,
-                signals: [50, 55]
+                signal: 52.5
             });
             signalMap2.beacons.push({
                 name: registeredBeacons[0].name,
-                signals: [50, 55]
+                signal: 52.5
             });
 
             const roomEstimation = exec();
@@ -141,7 +141,7 @@ describe('Location estimation algorithm', () => {
         it("Should also locate the right room when client posts more beacons than server has", () => {
             registeredBeacons.push({
                 name: mongoose.Types.ObjectId(),
-                signals: [50, 55]
+                signals: 52.5
             });
 
             const roomEstimation = exec();
@@ -154,23 +154,22 @@ describe('Location estimation algorithm', () => {
                 beacons: [
                     {
                         name: registeredBeacons[0].name,
-                        signals: [50, 55]
+                        signal: 52.5
                     },
                     {
                         name: registeredBeacons[1].name,
-                        signals: [1, 2]
+                        signal: 1.5
                     }
                 ],
                 room: signalMap2.room
             };
 
             signalMaps.push(signalMap3);
-            // console.log(signalMaps);
 
             // should find 3 points. the closest point to room A, but the two others point to room B.
             // Should therefore estimate the room to be room B
             const roomEstimation = exec();
-            expect(roomEstimation.type.toString()).to.equal(signalMap1.room.toString());
+            expect(roomEstimation.type.toString()).to.equal(signalMap3.room.toString());
             expect(roomEstimation.certainty).to.approximately(66, 1);
         });
 
@@ -413,20 +412,20 @@ describe('Location estimation algorithm', () => {
             unAlignedBeacons = [
                 {
                     name: beaconName3,
-                    signals: [-10]
+                    signal: -10
                 },
                 {
                     name: beaconName1,
-                    signals: [-20]
+                    signal: -20
                 }, {
                     name: id4,
-                    signals: [-30]
+                    signal: -30
                 }
             ];
 
             alignedBeaconNames = [beaconName1, beaconName2, beaconName3, id4];
             const res = exec();
-            expect(res[1].signals[0]).to.equal(-100);
+            expect(res[1].signal).to.equal(-100);
         });
 
         it("Should throw if unaligned is not at least one length array ", () => {

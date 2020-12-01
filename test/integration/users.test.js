@@ -1,6 +1,7 @@
 const {User} = require('../../models/user');
 const {SignalMap} = require('../../models/signalMap');
 const {Building} = require('../../models/building');
+const {Beacon} = require('../../models/beacon');
 const {Room} = require('../../models/room');
 const request = require('supertest');
 let assert = require('assert');
@@ -41,6 +42,7 @@ describe('/api/users', () => {
         await SignalMap.deleteMany();
         await Room.deleteMany();
         await Building.deleteMany();
+        await Beacon.deleteMany();
     });
 
     describe("GET /", () => {
@@ -60,7 +62,6 @@ describe('/api/users', () => {
             });
             token = user.generateAuthToken();
             await user.save();
-            console.log(user);
             query = "";
         });
 
@@ -112,8 +113,7 @@ describe('/api/users', () => {
             beaconName = "random name";
 
             user = new User({
-                currentRoom: roomId,
-                roomLastUpdated: new Date(),
+                locations: [{room: roomId, updatedAt: new Date()}],
                 role: 2,
                 refreshToken: uuidv4()
             });
@@ -128,36 +128,56 @@ describe('/api/users', () => {
             expect(res.body.length).to.equal(2);
         });
 
-        it("Should return only user id, currentRoom and roomLastUpdated", async () => {
+        it("Should return only user id and locations array", async () => {
             const res = await exec();
             const fetchedUser = res.body.find(e => e._id === user.id);
 
-            expect(Object.keys(fetchedUser).length).to.equal(3);
+            expect(Object.keys(fetchedUser).length).to.equal(2);
         });
 
         it("Should update user's location after posting signalmap", async () => {
-            await new SignalMap({beacons: [{name: beaconName, signals: [-10]}], room: roomId, isActive: true}).save();
+            await new Beacon({name: beaconName, building: buildingId}).save();
+            await new Beacon({name: "hej", building: buildingId}).save();
+            await new SignalMap({beacons: [{name: beaconName, signal: -10}], room: roomId, isActive: true}).save();
 
-            user.currentRoom = undefined;
+            user.locations = [];
             await user.save();
             await request(server).post("/api/signalmaps/" ).set("x-auth-token", token).send({
-                beacons: [{name: "hej", signals: [-10]}],
+                beacons: [{name: "hej", signal: -10}],
             });
 
             const res = await exec();
             const updatedUser = res.body.find(u => u._id === user.id);
-            console.log(updatedUser);
-            expect(updatedUser.currentRoom).to.equal(roomId);
+            expect(updatedUser.locations[0].room).to.equal(roomId);
         });
 
-        it("Should only be allowed if user is an admin", async () => {
+        it("Should return list of locations with room id and time updated", async () => {
+            const res = await exec();
+
+            const updatedUser = res.body.find(u => u._id === user.id);
+            expect(updatedUser.locations.length).to.equal(1);
+        });
+
+        it("Should not be allowed if user is not admin or Davide", async () => {
             user.role = 1;
             token = user.generateAuthToken();
+            user.email = "not@davide.dk";
             await user.save();
 
             const res = await exec();
             expect(res.statusCode).to.equal(403);
         });
+
+        it("Should be allowed if user has email address of davide", async () => {
+            user.role = 1;
+            user.email = "dcal@dtu.dk";
+            await user.save();
+
+            const res = await exec();
+            expect(res.statusCode).to.equal(200);
+        });
+
+
     });
 
     describe('POST /', () => {
