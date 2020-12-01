@@ -27,6 +27,15 @@ signalMaps.forEach(sm => {
                 print("wtf ");
                 printjson(b);
             } else {
+                const room = db.rooms.findOne({_id: sm.room});
+                const beacon = db.beacons.findOne({_id: b._id});
+
+                if (room.building.toString() !== beacon._id.toString()){
+                    print(" weird ")
+                } else {
+                    print("ok");
+                }
+
                 print("b with id");
             }
         } else {
