@@ -55,10 +55,12 @@ beacons.forEach(b => {
 
     const newName = beaconNameMap[b.name];
 
-    if (!newName){
+    if (!newName) {
         print("Wut");
     } else {
-
+        db.beacons.update({name: b.name}, {
+            $set: {name: newName},
+        })
     }
     // db.signalmaps.update({_id: sm._id}, {
     //     $set: {
