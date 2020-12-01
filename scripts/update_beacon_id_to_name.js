@@ -31,7 +31,7 @@ signalMaps.forEach(sm => {
                 const beacon = db.beacons.findOne({_id: b._id});
 
                 if (room.building.toString() !== beacon.building.toString()){
-                    print(" weird " + room.building + " " + beacon.building + " sm: " + sm._id)
+                    print(" weird " + room.building + " " + beacon.building + " sm: " + sm._id + " beacon: " + b._id);
                 } else {
                     print("ok");
                 }
