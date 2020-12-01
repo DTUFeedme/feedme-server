@@ -7,6 +7,14 @@ const beacons = db.beacons.find();
 
 beaconNameMap = {
     "7ZGI": "43300 - 17321",
+    "CQS0": "51362 - 64784",
+    "x2tk": "49930 - 17199",
+    "fBDa": "7096 - 10821",
+    "btFo": "43639 - 31347",
+    "b6dI": "9952 - 63242",
+    "FizX": "18258 - 20914",
+
+
 }
 
 beacons.forEach(b => {
@@ -27,6 +35,9 @@ signalMaps.forEach(sm => {
             print("whaat " + sm._id + " " + b._id);
         }
         if (b._id.toString() === "ObjectId(\"5e37f456090d4f722ad1a21e\")"){
+            print("whaaaat " + sm._id + " " + b._id);
+        }
+        if (b._id.toString() === "ObjectId(\"5da421fa4626d722db476ab4\")"){
             print("whaaaat " + sm._id + " " + b._id);
         }
 
