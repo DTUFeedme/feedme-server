@@ -35,7 +35,7 @@ beacons.forEach(b => {
         }
 
         sm.beacons.forEach(beacon => {
-            if (foundBeacon)
+            if (!foundBInSm)
                 return;
 
             if (beacon._id.toString() === b._id.toString()){
