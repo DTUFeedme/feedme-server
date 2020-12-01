@@ -1,4 +1,3 @@
-
 var db = connect('127.0.0.1:27017/feedme');
 
 const signalMaps = db.signalmaps.find();
@@ -52,14 +51,15 @@ beaconNameMap = {
 //         print("beacon " + b._id.toString() + " not found in any sm");
 // });
 
-signalMaps.forEach(sm => {
-    sm.beacons.forEach(b => {
-        if (b.name === "7ZGI"){
-            print("whaaaat " + sm._id );
-        }
+beacons.forEach(b => {
 
-    });
+    const newName = beaconNameMap[b.name];
 
+    if (!newName){
+        print("Wut");
+    } else {
+
+    }
     // db.signalmaps.update({_id: sm._id}, {
     //     $set: {
     //         beacons
