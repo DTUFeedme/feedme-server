@@ -26,6 +26,7 @@ beaconNameMap = {
 }
 
 beacons.forEach(b => {
+    print("what " + b._id.toString());
     let foundBeacon = false;
     signalMaps.forEach(sm => {
 
