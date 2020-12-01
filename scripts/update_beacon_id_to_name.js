@@ -30,7 +30,7 @@ signalMaps.forEach(sm => {
                 print("b with id");
             }
         } else {
-            print("b with name ");
+            print("b with name " + sm._id);
         }
         // const newName = beaconNameMap[b.name];
         //
