@@ -87,6 +87,10 @@ beaconNameMap = {
 signalmaps = db.signalmaps.find();
 let smInserted = 0;
 let smRemoved = 0;
+let totalBeacons = 0;
+let beaconsAvoided = 0;
+let totalBeaconsInserted = 0;
+
 signalmaps.forEach(sm => {
     let signalLength = sm.beacons[0].signals.length;
     // print("removed sm " + smRemoved);
@@ -102,6 +106,7 @@ signalmaps.forEach(sm => {
         }
 
         for (let j = 0; j < sm.beacons.length; j++) {
+            totalBeacons++;
 
 
             if (sm.beacons[j].signals.length !== signalLength) {
@@ -121,16 +126,24 @@ signalmaps.forEach(sm => {
             //     let room = db.rooms.findOne({_id: sm.room});
             //     // db.beacons.insert({name: sm.beacons[j].name, building: room.building});
             // }
-            if (beacon.name === "7ZGI"){
-                print("avoiding " + beacon.name);
+            if (beacon.name !== "7ZGI") {
+                newSm.beacons.push({name: bNewName, signal: sm.beacons[j].signals[i]});
+                totalBeaconsInserted++;
             } else {
-                print("not avoiding");
+                beaconsAvoided++;
             }
-            newSm.beacons.push({name: bNewName, signal: sm.beacons[j].signals[i]});
+
         }
 
         // print("inserted " + smInserted);
         smInserted++;
         // db.signalmaps.insert(newSm);
+
     }
+    print("inserted " + smInserted + " sms");
+    print("sms removed " + smRemoved);
+    print("total beacons " + totalBeacons);
+    print("total beacons inserted " + totalBeaconsInserted);
+    print("beacons avoided " + beaconsAvoided);
+
 });
