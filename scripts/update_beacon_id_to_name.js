@@ -13,12 +13,44 @@ beaconNameMap = {
     "btFo": "43639 - 31347",
     "b6dI": "9952 - 63242",
     "FizX": "18258 - 20914",
-
-
+    "Pgoi": "11801 - 44771",
+    "r0eb": "61766 - 9231",
+    "RY5g": "21852 - 43249",
+    "wDTZ": "27401 - 17544",
+    "Kj8Y": "49306 - 45015",
+    "FImF": "62557 - 53798",
+    "djc3": "31017 - 1287",
+    "kBkf": "63568 - 55761",
+    "FerW": "5594 - 11048",
+    "UTNO": "55146 - 34671"
 }
 
 beacons.forEach(b => {
-    const newName = beaconNameMap[b.name];
+    let foundBeacon = false;
+    signalMaps.forEach(sm => {
+        let foundBInSm = false;
+        if (sm.beacons.length === 0) {
+            print("wait")
+            return;
+        }
+
+        sm.beacons.forEach(beacon => {
+            if (foundBeacon)
+                return;
+
+            if (beacon._id.toString() === b._id.toString()){
+                print("Found");
+                foundBeacon = true;
+                foundBInSm = true;
+            }
+        });
+        if (!foundBInSm)
+            print("beacon " + b._id.toString() + " not found in sm " + sm._id.toString());
+    });
+    if (!foundBeacon)
+        print("beacon " + b._id.toString() + " not found in any sm");
+
+    // const newName = beaconNameMap[b.name];
 
     // if (newName) {
     //     print("updated beacon from " + b.name + " to " + newName);
@@ -38,7 +70,7 @@ signalMaps.forEach(sm => {
             print("whaaaat " + sm._id + " " + b._id);
         }
         if (b._id.toString() === "ObjectId(\"5da421fa4626d722db476ab4\")"){
-            print("whaaaat " + sm._id + " " + b._id);
+            // print("whaaaat " + sm._id + " " + b._id);
         }
 
         if (!b.name) {
@@ -52,7 +84,7 @@ signalMaps.forEach(sm => {
                 if (room.building.toString() !== beacon.building.toString()){
                     print(" weird " + room.building + " " + beacon.building + " sm: " + sm._id + " beacon: " + b._id);
                 } else {
-                    print("ok");
+                    // print("ok");
                 }
             }
         } else {
