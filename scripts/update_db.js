@@ -48,70 +48,70 @@ var signalmaps = db.signalmaps.find();
 // });
 //
 // Updating all buildings without admins array with empty array.
-// buildings.forEach(b => {
-//     if (!b.admins)
-//         db.buildings.updateOne({_id: b._id}, {$set: {admins: []}});
-// });
-//
-// // Add admins to all buildings
-// users.forEach(user => {
-//     if (user.adminOnBuildings) {
-//         user.adminOnBuildings.forEach(bId => {
-//             db.buildings.updateOne({_id: bId}, {$push: {admins: user._id}})
-//         });
-//         db.users.updateOne({_id: user._id}, {$unset: {adminOnBuildings: ""}});
-//     }
-// });
+buildings.forEach(b => {
+    if (!b.admins)
+        db.buildings.updateOne({_id: b._id}, {$set: {admins: []}});
+});
 
-// Convert signalmap with array of signals to individual signalmaps
-signalmaps = db.signalmaps.find();
-let smInserted = 0;
-let smRemoved = 0;
-signalmaps.forEach(sm => {
-    let signalLength = sm.beacons[0].signals.length;
-    print("removed sm " + smRemoved);
-    smRemoved++;
-    // db.signalmaps.remove({_id: sm._id});
-
-
-    for (let i = 0; i < sm.beacons[0].signals.length; i++) {
-        var newSm = {
-            isActive: true,
-            room: sm.room,
-            beacons: []
-        }
-
-        for (let j = 0; j < sm.beacons.length; j++) {
-
-            if (sm.beacons[j].signals.length !== signalLength) {
-                print(sm.beacons[j].signals.length);
-                print(signalLength);
-                var room = db.rooms.findOne({_id: sm.room});
-                print("ERROR WITH SM " + sm._id + " from building " + room.building);
-                return;
-            }
-
-            let beacon = undefined;
-            if (!sm.beacons[j].name){
-                if (!sm.beacons[j]._id){
-                    print("wtf");
-                    return;
-                } else {
-                    beacon = db.beacons.findOne({_id: sm.beacons[j]._id});
-                }
-            } else {
-                beacon = db.beacons.findOne({name: sm.beacons[j].name});
-            }
-
-            if (!beacon) {
-                let room = db.rooms.findOne({_id: sm.room});
-                // db.beacons.insert({name: sm.beacons[j].name, building: room.building});
-            }
-            newSm.beacons.push({name: sm.beacons[j].name, signal: sm.beacons[j].signals[i]});
-        }
-
-        print("inserted " + smInserted);
-        smInserted++;
-        // db.signalmaps.insert(newSm);
+// Add admins to all buildings
+users.forEach(user => {
+    if (user.adminOnBuildings) {
+        user.adminOnBuildings.forEach(bId => {
+            db.buildings.updateOne({_id: bId}, {$push: {admins: user._id}})
+        });
+        db.users.updateOne({_id: user._id}, {$unset: {adminOnBuildings: ""}});
     }
 });
+
+// Convert signalmap with array of signals to individual signalmaps
+// signalmaps = db.signalmaps.find();
+// let smInserted = 0;
+// let smRemoved = 0;
+// signalmaps.forEach(sm => {
+//     let signalLength = sm.beacons[0].signals.length;
+//     print("removed sm " + smRemoved);
+//     smRemoved++;
+//     // db.signalmaps.remove({_id: sm._id});
+//
+//
+//     for (let i = 0; i < sm.beacons[0].signals.length; i++) {
+//         var newSm = {
+//             isActive: true,
+//             room: sm.room,
+//             beacons: []
+//         }
+//
+//         for (let j = 0; j < sm.beacons.length; j++) {
+//
+//             if (sm.beacons[j].signals.length !== signalLength) {
+//                 print(sm.beacons[j].signals.length);
+//                 print(signalLength);
+//                 var room = db.rooms.findOne({_id: sm.room});
+//                 print("ERROR WITH SM " + sm._id + " from building " + room.building);
+//                 return;
+//             }
+//
+//             let beacon = undefined;
+//             if (!sm.beacons[j].name){
+//                 if (!sm.beacons[j]._id){
+//                     print("wtf");
+//                     return;
+//                 } else {
+//                     beacon = db.beacons.findOne({_id: sm.beacons[j]._id});
+//                 }
+//             } else {
+//                 beacon = db.beacons.findOne({name: sm.beacons[j].name});
+//             }
+//
+//             if (!beacon) {
+//                 let room = db.rooms.findOne({_id: sm.room});
+//                 // db.beacons.insert({name: sm.beacons[j].name, building: room.building});
+//             }
+//             newSm.beacons.push({name: sm.beacons[j].name, signal: sm.beacons[j].signals[i]});
+//         }
+//
+//         print("inserted " + smInserted);
+//         smInserted++;
+//         // db.signalmaps.insert(newSm);
+//     }
+// });
