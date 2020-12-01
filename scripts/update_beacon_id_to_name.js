@@ -54,15 +54,8 @@ beaconNameMap = {
 
 signalMaps.forEach(sm => {
     sm.beacons.forEach(b => {
-        // print(b._id.toString());
-        if (b._id.toString() === "ObjectId(\"5e37f440090d4f722ad1a21d\")"){
-            print("whaat " + sm._id + " " + b._id);
-        }
-        if (b._id.toString() === "ObjectId(\"5e37f456090d4f722ad1a21e\")"){
-            print("whaaaat " + sm._id + " " + b._id);
-        }
-        if (b._id.toString() === "ObjectId(\"5da421fa4626d722db476ab4\")"){
-            print("whaaaat " + sm._id + " " + b._id);
+        if (b.name === "7ZGI"){
+            print("whaaaat " + sm._id );
         }
 
     });
