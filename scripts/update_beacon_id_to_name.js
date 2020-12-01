@@ -53,28 +53,6 @@ beaconNameMap = {
 // });
 
 signalMaps.forEach(sm => {
-    const beacons = []
-    sm.beacons.forEach(b => {
-        const newName = beaconNameMap[b.name];
-
-        if (newName) {
-            print("updated beacon with name " + b.name + " to " + newName);
-            beacons.push({signal: b.signal, name: newName});
-        } else {
-            print("Couldn't find beacon with name " + b.name);
-            beacons.push({signal: b.signal, name: b.name});
-        }
-    });
-
-    db.signalmaps.update({_id: sm._id}, {
-        $set: {
-            beacons
-        },
-    });
-
-
-
-
     sm.beacons.forEach(b => {
         // print(b._id.toString());
         if (b._id.toString() === "ObjectId(\"5e37f440090d4f722ad1a21d\")"){
@@ -87,32 +65,6 @@ signalMaps.forEach(sm => {
             print("whaaaat " + sm._id + " " + b._id);
         }
 
-        if (!b.name) {
-            if (!b._id){
-                print("wtf ");
-                printjson(b);
-            } else {
-                const room = db.rooms.findOne({_id: sm.room});
-                const beacon = db.beacons.findOne({_id: b._id});
-
-                if (room.building.toString() !== beacon.building.toString()){
-                    print(" weird " + room.building + " " + beacon.building + " sm: " + sm._id + " beacon: " + b._id);
-                } else {
-                    // print("ok");
-                }
-            }
-        } else {
-            print("b with name " + sm._id);
-        }
-        // const newName = beaconNameMap[b.name];
-        //
-        // if (newName) {
-        //     print("updated beacon with name " + b.name + " to " + newName);
-        //     beacons.push({signal: b.signal, name: newName});
-        // } else {
-        //     print("Couldn't find beacon with name " + b.name);
-        //     beacons.push({signal: b.signal, name: b.name});
-        // }
     });
 
     // db.signalmaps.update({_id: sm._id}, {
