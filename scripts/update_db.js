@@ -140,10 +140,12 @@ signalmaps.forEach(sm => {
         // db.signalmaps.insert(newSm);
 
     }
-    print("inserted " + smInserted + " sms");
-    print("sms removed " + smRemoved);
-    print("total beacons " + totalBeacons);
-    print("total beacons inserted " + totalBeaconsInserted);
-    print("beacons avoided " + beaconsAvoided);
+
 
 });
+
+print("inserted " + smInserted + " sms");
+print("sms removed " + smRemoved);
+print("total beacons " + totalBeacons);
+print("total beacons inserted " + totalBeaconsInserted);
+print("beacons avoided " + beaconsAvoided);
