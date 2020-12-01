@@ -102,7 +102,6 @@ signalmaps.forEach(sm => {
         }
 
         for (let j = 0; j < sm.beacons.length; j++) {
-            if (sm.beacons[j]._id.toString() === )
 
 
             if (sm.beacons[j].signals.length !== signalLength) {
