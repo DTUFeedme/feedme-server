@@ -123,7 +123,7 @@ signalmaps.forEach(sm => {
             //     // db.beacons.insert({name: sm.beacons[j].name, building: room.building});
             // }
             if (beacon.name === "7ZGI"){
-                print("avoiding " + beacon.name)
+                print("avoiding " + beacon.name);
             } else {
 
             }
