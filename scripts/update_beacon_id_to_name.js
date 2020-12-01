@@ -28,8 +28,6 @@ beaconNameMap = {
 beacons.forEach(b => {
     let foundBeacon = false;
     signalMaps.forEach(sm => {
-        let foundBInSm = false;
-
         sm.beacons.forEach(beacon => {
             // if (foundBInSm)
             //     return;
@@ -37,12 +35,13 @@ beacons.forEach(b => {
             if (beacon._id.toString() === b._id.toString()){
                 print("Found " + beacon._id.toString());
                 foundBeacon = true;
-                foundBInSm = true;
             }
         });
-        if (!foundBInSm)
-            print("beacon " + b._id.toString() + " not found in sm " + sm._id.toString());
+        // if (!foundBInSm)
+        //     print("beacon " + b._id.toString() + " not found in sm " + sm._id.toString());
     });
+
+
     if (!foundBeacon)
         print("beacon " + b._id.toString() + " not found in any sm");
 
