@@ -84,7 +84,7 @@ signalMaps.forEach(sm => {
             print("whaaaat " + sm._id + " " + b._id);
         }
         if (b._id.toString() === "ObjectId(\"5da421fa4626d722db476ab4\")"){
-            // print("whaaaat " + sm._id + " " + b._id);
+            print("whaaaat " + sm._id + " " + b._id);
         }
 
         if (!b.name) {
