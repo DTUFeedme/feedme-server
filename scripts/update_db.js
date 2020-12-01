@@ -89,7 +89,7 @@ let smInserted = 0;
 let smRemoved = 0;
 signalmaps.forEach(sm => {
     let signalLength = sm.beacons[0].signals.length;
-    print("removed sm " + smRemoved);
+    // print("removed sm " + smRemoved);
     smRemoved++;
     // db.signalmaps.remove({_id: sm._id});
 
@@ -127,7 +127,7 @@ signalmaps.forEach(sm => {
             newSm.beacons.push({name: sm.beacons[j].name, signal: sm.beacons[j].signals[i]});
         }
 
-        print("inserted " + smInserted);
+        // print("inserted " + smInserted);
         smInserted++;
         // db.signalmaps.insert(newSm);
     }
