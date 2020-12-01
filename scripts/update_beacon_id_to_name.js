@@ -22,6 +22,13 @@ beacons.forEach(b => {
 signalMaps.forEach(sm => {
     const beacons = []
     sm.beacons.forEach(b => {
+        if (b._id.toString() === "5e37f440090d4f722ad1a21d"){
+            print("whaat")
+        }
+        if (b._id.toString() === "5e37f456090d4f722ad1a21e"){
+            print("whaaaat")
+        }
+
         if (!b.name) {
             if (!b._id){
                 print("wtf ");
