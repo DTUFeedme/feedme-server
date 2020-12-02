@@ -40,7 +40,7 @@ const createSignalMap = async (req, res) => {
             room: room.id,
             updatedAt: new Date()
         }
-        if (user.locations.length === 1000){
+        if (user.locations.length === 1000) {
             user.locations[0] = location;
             user.locations.sort((l1, l2) => l1.updatedAt - l2.updatedAt);
             await user.save();
@@ -128,14 +128,35 @@ const deleteFromRoom = async (req, res) => {
     const result = await SignalMap.deleteMany({room: roomId});
 
     const signalMaps = await SignalMap.find();
+    const beacons = await Beacon.find({building: building.id});
+    let foundBeacon = false;
 
+    for (let i = 0; i < beacons.length; i++) {
+        for (let j = 0; j < signalMaps.length; j++) {
+            if (foundBeacon)
+                break;
+            const sm = signalMaps[j];
+
+            for (let k = 0; k < sm.beacons.length; k++) {
+                if (sm.beacons[k].name === beacons[i].name) {
+                    foundBeacon = true;
+                    break;
+                }
+            }
+        }
+
+        if (!foundBeacon)
+            await beacons[i].remove()
+
+        foundBeacon = false;
+    }
     // Building set with all beacons with reference from signalMaps.
-    const beaconsWithReferences = new Set();
-    signalMaps.forEach(sm => {
-        sm.beacons.forEach(b => beaconsWithReferences.add(b.name));
-    });
-    // Then deleting all beacons not in the set
-    await Beacon.deleteMany({name: {$nin: Array.from(beaconsWithReferences)}});
+    // const beaconsWithReferences = new Set();
+    // signalMaps.forEach(sm => {
+    //     sm.beacons.forEach(b => beaconsWithReferences.add(b.name));
+    // });
+    // // Then deleting all beacons not in the set
+    // await Beacon.deleteMany({name: {$nin: Array.from(beaconsWithReferences)}});
 
     res.send(result);
 };
