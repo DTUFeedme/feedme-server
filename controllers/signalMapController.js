@@ -132,7 +132,7 @@ const deleteFromRoom = async (req, res) => {
 
     const result = await SignalMap.deleteMany({room: roomId});
 
-    const signalMaps = await SignalMap.find();
+    const signalMaps = await SignalMap.find({building: room.building});
     const beacons = await Beacon.find({building: building.id});
     let foundBeacon = false;
 
