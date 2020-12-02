@@ -13,6 +13,7 @@ const createSignalMap = async (req, res) => {
 
     let room;
     let certainty;
+    let buildingId;
     if (!roomId) {
         const serverBeacons = await Beacon.find({name: {$in: beacons.map(b => b.name)}});
         const filteredBeacons = await Beacon.find({building: {$in: serverBeacons.map(b => b.building)}});
@@ -20,12 +21,12 @@ const createSignalMap = async (req, res) => {
         if (serverBeacons.length <= 0)
             return res.status(400).send("No server beacons were found matching the beacon names in the signal map");
 
-        const rooms = await Room.find({building: {$in: filteredBeacons.map(fb => fb.building)}});
+        // const rooms = await Room.find({building: {$in: filteredBeacons.map(fb => fb.building)}});
 
 
         let signalMaps = await SignalMap.find({
             isActive: true,
-            room: {$in: rooms.map(r => r.id)},
+            building: {$in: filteredBeacons.map(fb => fb.building)}
         });
 
         if (signalMaps.length <= 0) return res.status(400).send("Unable to find any active signalMaps " +
@@ -34,6 +35,7 @@ const createSignalMap = async (req, res) => {
         roomEstimation = await roomTypeEstimation(beacons, signalMaps, 3, filteredBeacons.map(sb => sb.name));
 
         room = await Room.findById(roomEstimation.type);
+        buildingId = room.building;
         certainty = roomEstimation.certainty;
         const user = req.user;
         const location = {
@@ -53,6 +55,8 @@ const createSignalMap = async (req, res) => {
         if (req.user.role < 1) return res.status(403).send("User should be authorized to post active signalmaps");
         room = await Room.findById(roomId);
         if (!room) return res.status(400).send(`Room with id ${roomId} was not found`);
+
+        buildingId = room.building;
 
         const building = await Building.findOne({_id: room.building, admins: {$all: [req.user.id]}});
         if (!building)
@@ -85,6 +89,7 @@ const createSignalMap = async (req, res) => {
         room: roomId || roomEstimation.type,
         beacons: beacons,
         isActive: !!roomId,
+        building: buildingId
     });
 
     if (signalMap.isActive) {

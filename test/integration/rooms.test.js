@@ -432,6 +432,7 @@ describe('/api/rooms', () => {
 
         it("Should delete all signalmaps that references the room", async () => {
             const signalMap = await new SignalMap({
+                building: building.id,
                 room: roomId
             }).save();
 

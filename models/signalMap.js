@@ -24,6 +24,11 @@ const signalMapSchema = new mongoose.Schema({
     isActive: {
         type: Boolean,
         default: false
+    },
+    building: {
+        type: mongoose.Types.ObjectId,
+        ref: "Building",
+        required: true
     }
 });
 

@@ -15,7 +15,7 @@ const chaiAsPromised = require("chai-as-promised");
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 chai.should();
-const { v4: uuidv4 , validate} = require('uuid');
+const {v4: uuidv4, validate} = require('uuid');
 
 describe('/api/users', () => {
     let user;
@@ -106,7 +106,7 @@ describe('/api/users', () => {
         };
 
         beforeEach(async () => {
-            const building =  new Building({name: "hey"});
+            const building = new Building({name: "hey"});
             buildingId = building.id;
             const room = new Room({building: buildingId, name: "hey"});
             roomId = room.id;
@@ -138,11 +138,15 @@ describe('/api/users', () => {
         it("Should update user's location after posting signalmap", async () => {
             await new Beacon({name: beaconName, building: buildingId}).save();
             await new Beacon({name: "hej", building: buildingId}).save();
-            await new SignalMap({beacons: [{name: beaconName, signal: -10}], room: roomId, isActive: true}).save();
+            await new SignalMap({
+                building: buildingId,
+                beacons: [{name: beaconName, signal: -10}],
+                room: roomId, isActive: true
+            }).save();
 
             user.locations = [];
             await user.save();
-            await request(server).post("/api/signalmaps/" ).set("x-auth-token", token).send({
+            await request(server).post("/api/signalmaps/").set("x-auth-token", token).send({
                 beacons: [{name: "hej", signal: -10}],
             });
 
