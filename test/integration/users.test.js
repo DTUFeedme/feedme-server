@@ -184,6 +184,98 @@ describe('/api/users', () => {
 
     });
 
+    describe("GET /:userId/location", () => {
+        let roomId;
+        let buildingId;
+        let beaconName;
+        let userId;
+        const exec = () => {
+            return request(server)
+                .get("/api/users/" + userId + "/location")
+                .set('x-auth-token', token);
+        };
+
+        beforeEach(async () => {
+            const building = new Building({name: "hey"});
+            buildingId = building.id;
+            const room = new Room({building: buildingId, name: "hey"});
+            roomId = room.id;
+            beaconName = "random name";
+
+            user = new User({
+                locations: [{room: roomId, updatedAt: new Date()}],
+                role: 2,
+                refreshToken: uuidv4()
+            });
+            userId = user.id
+            token = user.generateAuthToken();
+            await user.save();
+            await building.save();
+            await room.save();
+        });
+
+        it("Should return a user object with list of user locations", async () => {
+
+            const res = await exec();
+
+            expect(res.body.locations.length).to.equal(1);
+        });
+
+        it("Should return only user id and locations array", async () => {
+            const res = await exec();
+            //const fetchedUser = res.body.find(e => e._id === user.id);
+
+            expect(Object.keys(res.body).length).to.equal(2);
+        });
+
+        it("Should update user's location after posting signalmap", async () => {
+            await new Beacon({name: beaconName, building: buildingId}).save();
+            await new Beacon({name: "hej", building: buildingId}).save();
+            await new SignalMap({
+                building: buildingId,
+                beacons: [{name: beaconName, signal: -10}],
+                room: roomId, isActive: true
+            }).save();
+
+            user.locations = [];
+            await user.save();
+            await request(server).post("/api/signalmaps/").set("x-auth-token", token).send({
+                beacons: [{name: "hej", signal: -10}],
+            });
+
+            const res = await exec();
+            expect(res.body.locations[0].room).to.equal(roomId);
+        });
+
+        it("Should return list of locations with room id and time updated", async () => {
+            const res = await exec();
+
+            //const updatedUser = res.body.find(u => u._id === user.id);
+            expect(res.body.locations.length).to.equal(1);
+        });
+
+        it("Should not be allowed if user is not admin or Davide", async () => {
+            user.role = 1;
+            token = user.generateAuthToken();
+            user.email = "not@davide.dk";
+            await user.save();
+
+            const res = await exec();
+            expect(res.statusCode).to.equal(403);
+        });
+
+        it("Should be allowed if user has email address of davide", async () => {
+            user.role = 1;
+            user.email = "dcal@dtu.dk";
+            await user.save();
+
+            const res = await exec();
+            expect(res.statusCode).to.equal(200);
+        });
+
+
+    });
+
     describe('POST /', () => {
 
         describe("Unauthorized user", () => {

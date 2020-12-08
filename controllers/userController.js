@@ -17,6 +17,17 @@ const getUsersLocation = async (req, res) => {
     res.send(users);
 };
 
+const getUserLocation = async (req, res) => {
+    const user = req.user;
+    const userId = req.params.id;
+    if (user.role < 2 && user.email !== "dcal@dtu.dk")
+        return res.status(403).send("Admin rights are required to get user location");
+
+    const userLocation = await User.findById(userId, "_id locations");
+    res.send(userLocation);
+
+};
+
 const makeUserAdmin = async (req, res) => {
 
     const {email, buildingId} = req.body;
@@ -83,3 +94,4 @@ module.exports.getUsers = getUsers;
 module.exports.makeUserAdmin = makeUserAdmin;
 module.exports.createUser = createUser;
 module.exports.getUsersLocation = getUsersLocation;
+module.exports.getUserLocation = getUserLocation;
