@@ -20,11 +20,12 @@ const addRoomPrediction = async (req, res) => {
 
     if (error) return res.status(400).send(error.details[0].message);
 
-    const {signalMapId, correctRoomId, predictedRoomId} = req.body;
+    const {signalMap, correctRoomId, predictedRoomId} = req.body;
+
 
     // Verify ids
-    const sm = await SignalMap.findById(signalMapId);
-    if (!sm) res.status(400).send(`SignalMap with id ${signalMapId} was not found in db`);
+    //const sm = await new SignalMap(signalMap).save();
+    // if (!sm) res.status(400).send(`SignalMap with id ${signalMapId} was not found in db`);
 
     const correctRoom = await Room.findById(correctRoomId);
     if (!correctRoom) res.status(400).send(`CorrectRoom with id ${correctRoomId} was not found in db`);
@@ -36,7 +37,7 @@ const addRoomPrediction = async (req, res) => {
         correctRoom: correctRoomId,
         user: user.id,
         predictedRoom: predictedRoomId,
-        signalMap: signalMapId
+        signalMap
     });
 
     await roomPrediction.save();

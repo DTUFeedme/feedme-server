@@ -70,7 +70,7 @@ const createSignalMap = async (req, res) => {
                 const rooms = await Room.find({building: building.id});
 
                 // Updates all signalmaps to include new beacon with signal value -100
-                await SignalMap.updateMany({room: {$in: rooms.map(r => r.id)}}, {
+                await SignalMap.updateMany({room: {$in: rooms.map(r => r.id)}, isActive: true}, {
                     $push: {
                         beacons: {
                             name: beacons[i].name,
@@ -132,7 +132,7 @@ const deleteFromRoom = async (req, res) => {
 
     const result = await SignalMap.deleteMany({room: roomId});
 
-    const signalMaps = await SignalMap.find({building: room.building});
+    const signalMaps = await SignalMap.find({building: room.building, isActive: true});
     const beacons = await Beacon.find({building: building.id});
     let foundBeacon = false;
 

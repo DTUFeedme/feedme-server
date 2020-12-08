@@ -17,6 +17,7 @@ chai.use(chaiAsPromised);
 const expect = chai.expect;
 chai.should();
 const {v4: uuidv4, validate} = require('uuid');
+const _ = require('lodash');
 
 describe('/api/wrongRooms', () => {
     let user;
@@ -196,12 +197,13 @@ describe('/api/wrongRooms', () => {
         let correctRoomId;
         let predictedRoomId;
         let signalMapId;
+        let signalMap;
 
         const exec = () => {
             return request(server)
                 .post("/api/roomPredictions")
                 .set('x-auth-token', token)
-                .send({correctRoomId, predictedRoomId, signalMapId});
+                .send({correctRoomId, predictedRoomId, signalMap});
         };
 
         beforeEach(async () => {
@@ -216,13 +218,12 @@ describe('/api/wrongRooms', () => {
             user.role = 0;
             await user.save();
 
-            const signalMap = await new SignalMap({
-                building: buildingId,
-                room: correctRoomId,
+            signalMap = {
                 beacons: [{name: beacon.name, signal: -42}]
-            }).save();
+            };
 
-            signalMapId = signalMap.id;
+            // signalMap = _.pick(signalMap, ["beacons"])
+            console.log(signalMap)
 
             roomPrediction = await new RoomPrediction({
                 correctRoom: correctRoomId,
@@ -230,7 +231,7 @@ describe('/api/wrongRooms', () => {
                 signalMap: signalMap.id,
                 user: user.id,
             });
-            console.log(roomPrediction)
+            // console.log(_.pick(roomPrediction, ["correctRoom", "predictedRoom", "signalMap", ]))
 
         });
 
@@ -264,12 +265,6 @@ describe('/api/wrongRooms', () => {
 
             expect("updatedAt" in res.body).to.not.be.ok;
             expect("createdAt" in res.body).to.be.ok;
-        });
-
-        it("Should verify existence of signalmap", async () => {
-            await SignalMap.findByIdAndDelete(signalMapId);
-            const res = await exec();
-            expect(res.statusCode).to.equal(400)
         });
 
         it("Should verify existence of correct room", async () => {

@@ -3,8 +3,20 @@ const Joi = require('joi');
 
 const roomPredictionSchema = new mongoose.Schema({
     signalMap: {
-        type: mongoose.Types.ObjectId,
-        ref: "Signalmap",
+        type: {
+            beacons: {
+                type: [{
+                    name: {
+                        type: String,
+                        required: true
+                    },
+                    signal: {
+                        type: Number,
+                        required: true
+                    }
+                }]
+            }
+        },
         required: true
     },
     correctRoom: {
@@ -29,7 +41,13 @@ const RoomPrediction = mongoose.model('RoomPrediction', roomPredictionSchema);
 function validateRoomPrediction(room) {
 
     const schema = {
-        signalMapId: Joi.objectId().required(),
+        signalMap: Joi.object({
+            beacons: Joi.array().items(Joi.object({
+                name: Joi.string()
+                    .required(),
+                signal: Joi.number().min(-200).max(0).required()
+            }).required()),
+        }).required(),
         correctRoomId: Joi.objectId().required(),
         predictedRoomId: Joi.objectId().required(),
     };

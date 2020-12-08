@@ -941,6 +941,7 @@ describe('/api/signalMaps', () => {
                 building: building.id,
                 room: otherRoom.id,
                 beacons: [{name: beaconWithRef.name, signal: -20}],
+                isActive: true
             }).save();
 
             await exec();
