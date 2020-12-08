@@ -15,6 +15,7 @@ const buildings = require('./routes/buildings');
 const beacons = require('./routes/beacons');
 const auth = require('./routes/auth');
 const signalMaps = require('./routes/signalMaps');
+const roomPredictions = require('./routes/roomPredictions');
 const error = require('./middleware/error');
 const morgan = require('morgan');
 const bodyParser = require("body-parser");
@@ -103,6 +104,7 @@ app.use(baseUrl + 'auth', auth);
 app.use(baseUrl + 'signalMaps', signalMaps);
 app.use(baseUrl + 'general', general);
 app.use(baseUrl + 'beacons', beacons);
+app.use(baseUrl + 'roomPredictions', roomPredictions);
 app.use(error);
 
 module.exports = app;

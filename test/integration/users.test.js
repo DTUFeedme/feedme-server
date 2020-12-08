@@ -180,8 +180,6 @@ describe('/api/users', () => {
             const res = await exec();
             expect(res.statusCode).to.equal(200);
         });
-
-
     });
 
     describe("GET /:userId/location", () => {
