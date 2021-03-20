@@ -16,3 +16,4 @@ router.get("/fromBuilding/:id/userCount", [auth, authorized], getUserCountFromBu
 router.delete("/:id", [auth, validId], deleteRoom);
 
 module.exports = router;
+

@@ -8,7 +8,7 @@ router.post('/', [auth, authorized], beaconController.createBeacon);
 
 router.get("/:id", [auth, validId], beaconController.getBeacon);
 
-router.get('/', [auth, admin], beaconController.getBeacons);
+router.get('/', [auth], beaconController.getBeacons);
 
 router.delete("/:id", [auth, authorized], beaconController.deleteBeacon);
 

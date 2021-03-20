@@ -23,14 +23,13 @@ const createSignalMap = async (req, res) => {
 
         // const rooms = await Room.find({building: {$in: filteredBeacons.map(fb => fb.building)}});
 
-
         let signalMaps = await SignalMap.find({
             isActive: true,
             building: {$in: filteredBeacons.map(fb => fb.building)}
         });
 
-        if (signalMaps.length <= 0) return res.status(400).send("Unable to find any active signalMaps " +
-            "in current building");
+        if (signalMaps.length <= 0)
+            return res.status(400).send("Unable to find any active signalMaps in current building");
 
         roomEstimation = await roomTypeEstimation(beacons, signalMaps, 3, filteredBeacons.map(sb => sb.name));
 
