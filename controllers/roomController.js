@@ -12,6 +12,10 @@ const createRoom = async (req, res) => {
 
     const {name, location, buildingId} = req.body;
 
+    const building = await Building.findOne({_id: buildingId, admins: {$all: [req.user.id]}});
+    if (!building)
+        return res.status(403).send("User was not admin on building with id " + buildingId);
+
     if (await Building.countDocuments({_id: buildingId}) <= 0)
         return res.status(404).send('Building with id ' + buildingId + ' was not found.');
 

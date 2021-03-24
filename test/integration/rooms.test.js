@@ -57,7 +57,7 @@ describe('/api/rooms', () => {
         };
 
         beforeEach(async () => {
-            building = new Building({name: '324'});
+            building = new Building({name: '324', admins: [user.id]});
             name = '324';
 
 
@@ -76,6 +76,13 @@ describe('/api/rooms', () => {
         it("Should return 403 if user not authorized with login role >= 1", async () => {
             user.role = 0;
             await user.save();
+            const res = await exec();
+            expect(res.statusCode).to.equal(403);
+        });
+
+        it("Should return 403 if user was not admin on building", async () => {
+            building.admins = [];
+            await building.save();
             const res = await exec();
             expect(res.statusCode).to.equal(403);
         });
