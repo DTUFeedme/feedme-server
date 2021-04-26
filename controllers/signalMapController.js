@@ -33,6 +33,7 @@ const createSignalMap = async (req, res) => {
 
         roomEstimation = await roomTypeEstimation(beacons, signalMaps, 3, filteredBeacons.map(sb => sb.name));
 
+        console.log(roomEstimation.type);
         room = await Room.findById(roomEstimation.type);
         buildingId = room.building;
         certainty = roomEstimation.certainty;
