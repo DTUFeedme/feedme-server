@@ -50,9 +50,6 @@ const getBeacons = async (req, res) => {
 
 };
 
-const getUuid = async (req, res) => {
-    return res.send("f7826da6-4fa2-4e98-8024-bc5b71e0893e");
-};
 
 const createBeacon = async (req, res) => {
 
@@ -79,4 +76,3 @@ module.exports.deleteBeacon = deleteBeacon;
 module.exports.getBeacons = getBeacons;
 module.exports.getBeacon = getBeacon;
 module.exports.createBeacon = createBeacon;
-module.exports.getUuid = getUuid;

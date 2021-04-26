@@ -108,7 +108,7 @@ describe('/api/beacons', () => {
     describe("GET /uuid", () => {
         const exec = () => {
             return request(server)
-                .get("/api/beacons/uuid")
+                .get("/api/uuid")
                 .set('x-auth-token', token);
         };
 

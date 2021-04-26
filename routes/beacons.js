@@ -6,8 +6,6 @@ const beaconController = require("../controllers/beaconController");
 
 router.post('/', [auth, authorized], beaconController.createBeacon);
 
-router.get("/uuid", [auth], beaconController.getUuid);
-
 router.get("/:id", [auth, validId], beaconController.getBeacon);
 
 router.get('/', [auth], beaconController.getBeacons);
