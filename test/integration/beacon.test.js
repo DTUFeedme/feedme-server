@@ -104,4 +104,25 @@ describe('/api/beacons', () => {
         });
     });
 
+
+    describe("GET /uuid", () => {
+        const exec = () => {
+            return request(server)
+                .get("/api/beacons/uuid")
+                .set('x-auth-token', token);
+        };
+
+
+        it("Should return specific uuid", async () => {
+            const res = await exec();
+            const uuid = "f7826da6-4fa2-4e98-8024-bc5b71e0893e";
+
+            expect(res.text).to.equal(uuid)
+
+        });
+
+
+    });
+
+
 });
