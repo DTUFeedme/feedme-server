@@ -106,7 +106,7 @@ app.use(baseUrl + 'auth', auth);
 app.use(baseUrl + 'signalMaps', signalMaps);
 app.use(baseUrl + 'general', general);
 app.use(baseUrl + 'beacons', beacons);
-app.use(baseUrl + 'uuid', uuid);
+app.use(baseUrl + 'uuids', uuid);
 app.use(baseUrl + 'roomPredictions', roomPredictions);
 app.use(baseUrl + 'app-feedback', appFeedbacks);
 app.use(error);
